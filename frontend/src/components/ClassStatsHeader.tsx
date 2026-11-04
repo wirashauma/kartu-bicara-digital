@@ -5,10 +5,10 @@ import Link from "next/link";
 import {
   MessageSquare,
   BarChart3,
+  History,
   Settings,
   Volume2,
   VolumeX,
-  Hash,
   LogOut,
   LogIn,
   UserPen,
@@ -21,8 +21,8 @@ import { ClassRoom, ClassStats, SessionConfig, SessionStatus } from "@/types/ses
 import { AuthUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
-// Hanya 3 Tab Utama Rapi (Token/Riwayat Token di Navbar telah dihapus)
-export type TeacherTab = "DISCUSSION" | "ANALYTICS" | "SETTINGS";
+// 4 Tab Utama: Sesi Diskusi, Statistik & Evaluasi, Riwayat Token, Pengaturan
+export type TeacherTab = "DISCUSSION" | "ANALYTICS" | "TIMELINE" | "SETTINGS";
 
 export interface ClassStatsHeaderProps {
   stats: ClassStats;
@@ -73,10 +73,11 @@ export function ClassStatsHeader({
     };
   }, []);
 
-  // 3 Tab Menu Bersih Tanpa Badges Token
+  // 4 Tab Menu: Sesi Diskusi, Statistik & Evaluasi, Riwayat Token, Pengaturan
   const tabs: { id: TeacherTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: "DISCUSSION", label: "Sesi Diskusi", icon: MessageSquare },
     { id: "ANALYTICS", label: "Statistik & Evaluasi", icon: BarChart3 },
+    { id: "TIMELINE", label: "Riwayat Token", icon: History },
     { id: "SETTINGS", label: "Pengaturan", icon: Settings },
   ];
 
@@ -138,14 +139,8 @@ export function ClassStatsHeader({
                   </button>
                 )}
 
-                <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/15 border border-white/20 text-xs font-bold text-white shrink-0">
+                <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/15 border border-white/20 text-xs font-bold text-white shrink-0">
                   <span className="truncate max-w-[130px]">{currentClass.name}</span>
-                </div>
-
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/15 border border-white/20 text-xs font-bold font-mono text-white shrink-0">
-                  <Hash className="w-3 h-3 text-sky-200" />
-                  <span>{currentClass.sessionPin}</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse ml-0.5" />
                 </div>
               </div>
             ) : (
@@ -178,6 +173,18 @@ export function ClassStatsHeader({
                     >
                       <Icon className={cn("w-3.5 h-3.5", isActive ? "text-sky-600" : "text-sky-200")} />
                       <span>{tab.label}</span>
+                      {tab.id === "TIMELINE" && stats.totalTokensUsed > 0 && (
+                        <span
+                          className={cn(
+                            "ml-0.5 px-1.5 py-0.2 rounded-full text-[9px] font-bold border transition-colors",
+                            isActive
+                              ? "bg-sky-100 text-sky-800 border-sky-200"
+                              : "bg-white/20 text-white border-white/25"
+                          )}
+                        >
+                          {stats.totalTokensUsed}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -333,6 +340,18 @@ export function ClassStatsHeader({
                   >
                     <Icon className={cn("w-3.5 h-3.5", isActive ? "text-sky-600" : "text-sky-200")} />
                     <span>{tab.label}</span>
+                    {tab.id === "TIMELINE" && stats.totalTokensUsed > 0 && (
+                      <span
+                        className={cn(
+                          "ml-0.5 px-1.5 py-0.2 rounded-full text-[9px] font-bold border",
+                          isActive
+                            ? "bg-sky-100 text-sky-800 border-sky-200"
+                            : "bg-white/20 text-white border-white/25"
+                        )}
+                      >
+                        {stats.totalTokensUsed}
+                      </span>
+                    )}
                   </button>
                 );
               })}
