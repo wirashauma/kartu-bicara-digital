@@ -124,8 +124,8 @@ export function TypeSelectorModal({
                   <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white/25 text-white border border-white/30">
                     Klaim Kartu Bicara
                   </span>
-                  <span className="text-xs text-sky-100">
-                    Meja #{student.deskNumber}
+                  <span className="text-xs text-sky-100 font-medium">
+                    #{student.deskNumber}
                   </span>
                 </div>
                 <h3 className="text-lg font-bold text-white tracking-tight mt-0.5">
