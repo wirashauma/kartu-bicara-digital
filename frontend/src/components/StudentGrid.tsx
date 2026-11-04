@@ -10,6 +10,7 @@ import {
   Search,
   UserCheck,
   Flame,
+  Trash2,
 } from "lucide-react";
 import { Student, TokenType } from "@/types/session";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 export interface StudentGridProps {
   students: Student[];
   onSelectStudent: (student: Student) => void;
+  onDeleteStudent?: (student: Student) => void;
   activeSpeakerStudentId?: string | null;
   activeTokenFilter?: TokenType | null;
   className?: string;
@@ -27,6 +29,7 @@ type FilterTab = "ALL" | "IDLE" | "ACTIVE_SPEAKING" | "HAS_SPOKEN";
 export function StudentGrid({
   students,
   onSelectStudent,
+  onDeleteStudent,
   activeSpeakerStudentId,
   activeTokenFilter,
   className,
@@ -191,20 +194,36 @@ export function StudentGrid({
                       Meja #{student.deskNumber}
                     </span>
 
-                    {isSpeaking ? (
-                      <span className="flex items-center gap-1.5 text-[10px] font-black px-2 py-0.5 rounded-lg bg-sky-600 text-white animate-pulse">
-                        <Mic className="w-3 h-3" />
-                        <span>Bicara</span>
-                      </span>
-                    ) : isIdle ? (
-                      <span className="text-[10px] font-black text-amber-700 bg-amber-100/90 px-2 py-0.5 rounded-lg border border-amber-300">
-                        Belum
-                      </span>
-                    ) : (
-                      <span className="text-xs font-semibold text-slate-400">
-                        {student.remainingTokens} sisa
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {isSpeaking ? (
+                        <span className="flex items-center gap-1.5 text-[10px] font-black px-2 py-0.5 rounded-lg bg-sky-600 text-white animate-pulse">
+                          <Mic className="w-3 h-3" />
+                          <span>Bicara</span>
+                        </span>
+                      ) : isIdle ? (
+                        <span className="text-[10px] font-black text-amber-700 bg-amber-100/90 px-2 py-0.5 rounded-lg border border-amber-300">
+                          Belum
+                        </span>
+                      ) : (
+                        <span className="text-xs font-semibold text-slate-400">
+                          {student.remainingTokens} sisa
+                        </span>
+                      )}
+
+                      {onDeleteStudent && !isSpeaking && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteStudent(student);
+                          }}
+                          title="Hapus Siswa dari Kelas"
+                          className="p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Student Name */}
