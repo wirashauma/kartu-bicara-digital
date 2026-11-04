@@ -147,7 +147,7 @@ export function ClassStatsHeader({
             )}
           </div>
 
-          {/* SISI TENGAH: Tabs Navigasi Segmented Bersih (3 Menu Tanpa Token) */}
+          {/* SISI TENGAH: Tabs Navigasi Segmented Bersih (4 Menu Navigasi) */}
           {currentClass ? (
             <div className="hidden md:flex items-center justify-center flex-1 mx-2 min-w-0">
               <nav className="flex items-center p-1 bg-black/15 backdrop-blur-md rounded-2xl border border-white/15 gap-1 shadow-inner shrink-0">
@@ -255,33 +255,23 @@ export function ClassStatsHeader({
                         </span>
                       </div>
 
-                      {onOpenEditProfile && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsDropdownOpen(false);
-                            onOpenEditProfile();
-                          }}
-                          className="w-full px-4 py-2 text-left text-xs text-slate-700 hover:bg-sky-50 hover:text-sky-700 flex items-center gap-2 font-medium transition-colors"
-                        >
-                          <UserPen className="w-3.5 h-3.5 text-sky-600" />
-                          <span>Edit Profil Pendidik</span>
-                        </button>
-                      )}
+                      <Link
+                        href="/profil"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="w-full px-4 py-2 text-left text-xs text-slate-700 hover:bg-sky-50 hover:text-sky-700 flex items-center gap-2 font-medium transition-colors"
+                      >
+                        <UserPen className="w-3.5 h-3.5 text-sky-600" />
+                        <span>Halaman Profil Pendidik</span>
+                      </Link>
 
-                      {onOpenFaq && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsDropdownOpen(false);
-                            onOpenFaq();
-                          }}
-                          className="w-full px-4 py-2 text-left text-xs text-slate-700 hover:bg-sky-50 hover:text-sky-700 flex items-center gap-2 font-medium transition-colors"
-                        >
-                          <HelpCircle className="w-3.5 h-3.5 text-sky-600" />
-                          <span>FAQ & Panduan Arends</span>
-                        </button>
-                      )}
+                      <Link
+                        href="/faq"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="w-full px-4 py-2 text-left text-xs text-slate-700 hover:bg-sky-50 hover:text-sky-700 flex items-center gap-2 font-medium transition-colors"
+                      >
+                        <HelpCircle className="w-3.5 h-3.5 text-sky-600" />
+                        <span>Pusat Bantuan & FAQ</span>
+                      </Link>
 
                       <div className="my-1 border-t border-slate-100" />
 
