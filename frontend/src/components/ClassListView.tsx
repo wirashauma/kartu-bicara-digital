@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { ClassRoom } from "@/types/session";
 import { AuthUser } from "@/lib/auth";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 interface ClassListViewProps {
   classes: ClassRoom[];
@@ -34,6 +35,7 @@ export function ClassListView({
   onDeleteClass,
 }: ClassListViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [classToDelete, setClassToDelete] = useState<ClassRoom | null>(null);
 
   const filteredClasses = useMemo(() => {
     if (!searchQuery.trim()) return classes;
@@ -218,9 +220,7 @@ export function ClassListView({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (confirm(`Apakah Anda yakin ingin menghapus "${item.name}"?`)) {
-                            onDeleteClass(item.id);
-                          }
+                          setClassToDelete(item);
                         }}
                         title="Hapus Kelas"
                         className="p-2.5 rounded-xl border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors"
@@ -255,6 +255,24 @@ export function ClassListView({
           </button>
         </div>
       )}
+
+      {/* Modal Konfirmasi Hapus Kelas Profesional */}
+      <ConfirmModal
+        isOpen={Boolean(classToDelete)}
+        variant="danger"
+        title={`Hapus ${classToDelete?.name}?`}
+        message="Seluruh data siswa, konfigurasi, dan riwayat kartu bicara pada kelas ini akan dihapus secara permanen."
+        note="Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus Kelas"
+        cancelText="Batal"
+        onConfirm={() => {
+          if (classToDelete && onDeleteClass) {
+            onDeleteClass(classToDelete.id);
+          }
+          setClassToDelete(null);
+        }}
+        onCancel={() => setClassToDelete(null)}
+      />
     </div>
   );
 }
