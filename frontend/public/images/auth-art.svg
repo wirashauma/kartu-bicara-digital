@@ -1,0 +1,294 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 850" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a160d" />
+      <stop offset="50%" stop-color="#122517" />
+      <stop offset="100%" stop-color="#193722" />
+    </linearGradient>
+
+    <linearGradient id="sagePrimary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#628766" />
+      <stop offset="100%" stop-color="#3e5841" />
+    </linearGradient>
+
+    <linearGradient id="sageVibrant" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#84a587" />
+      <stop offset="100%" stop-color="#4e6f52" />
+    </linearGradient>
+
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#065f46" />
+    </linearGradient>
+
+    <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#0d9488" />
+    </linearGradient>
+
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+
+    <linearGradient id="pinkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f472b6" />
+      <stop offset="100%" stop-color="#db2777" />
+    </linearGradient>
+
+    <linearGradient id="loopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a5236" />
+      <stop offset="100%" stop-color="#152b1c" />
+    </linearGradient>
+
+    <!-- Dot Grid Pattern -->
+    <pattern id="dotPattern" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+      <circle cx="2.5" cy="2.5" r="1.5" fill="#cad8cb" opacity="0.3" />
+    </pattern>
+
+    <pattern id="denseDotPattern" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#a7bfa9" opacity="0.45" />
+    </pattern>
+
+    <!-- Glow Filter -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Deep Forest Canvas Background -->
+  <rect width="800" height="850" fill="url(#bgGrad)" />
+
+  <!-- Ambient Light Halos -->
+  <circle cx="200" cy="180" r="180" fill="#4e6f52" opacity="0.25" filter="url(#softGlow)" />
+  <circle cx="620" cy="650" r="200" fill="#10b981" opacity="0.12" filter="url(#softGlow)" />
+  <circle cx="340" cy="460" r="140" fill="#f59e0b" opacity="0.1" filter="url(#softGlow)" />
+
+  <!-- ========================================== -->
+  <!-- TOP LEFT: ARCHITECTURAL SAGE ARCHES        -->
+  <!-- ========================================== -->
+  <g id="top-left-arches">
+    <path d="M 40 0 C 40 170, 190 290, 360 290 L 360 0 Z" fill="url(#sagePrimary)" />
+    <path d="M 110 0 C 110 130, 210 230, 360 230 L 360 0 Z" fill="url(#sageVibrant)" opacity="0.9" />
+    <path d="M 180 0 C 180 95, 250 165, 360 165 L 360 0 Z" fill="#a7bfa9" opacity="0.85" />
+    <path d="M 40 0 C 40 170, 190 290, 360 290" stroke="#cad8cb" stroke-width="2" stroke-dasharray="5 5" fill="none" opacity="0.5" />
+  </g>
+
+  <!-- Vertical Divider Line -->
+  <line x1="360" y1="0" x2="360" y2="320" stroke="#2a5236" stroke-width="1.5" />
+
+  <!-- ========================================== -->
+  <!-- TOP CENTER & RIGHT: EQUALIZER & 3D CUBES   -->
+  <!-- ========================================== -->
+  <!-- Top Center Box with Rhombus & Frequency Barcode -->
+  <g id="top-center-box" transform="translate(385, 30)">
+    <rect x="0" y="0" width="160" height="160" rx="14" fill="#0d1b11" stroke="#25472e" stroke-width="1.5" />
+    
+    <!-- Twin Diamond Badges -->
+    <g transform="translate(35, 18)">
+      <polygon points="25,0 43,18 25,36 7,18" fill="url(#amberGrad)" />
+      <polygon points="56,0 74,18 56,36 38,18" fill="#fde047" />
+    </g>
+
+    <!-- Rhythm Barcode Equalizer -->
+    <g transform="translate(15, 80)">
+      <rect x="0" y="0" width="130" height="6" rx="3" fill="#38bdf8" />
+      <line x1="8" y1="14" x2="8" y2="35" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" />
+      <line x1="16" y1="14" x2="16" y2="44" stroke="#cad8cb" stroke-width="2" stroke-linecap="round" />
+      <line x1="24" y1="14" x2="24" y2="30" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" />
+      <line x1="32" y1="14" x2="32" y2="48" stroke="#a7bfa9" stroke-width="3" stroke-linecap="round" />
+      <line x1="40" y1="14" x2="40" y2="38" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+      <line x1="48" y1="14" x2="48" y2="28" stroke="#cad8cb" stroke-width="2.5" stroke-linecap="round" />
+      <line x1="56" y1="14" x2="56" y2="46" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+      <line x1="64" y1="14" x2="64" y2="32" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" />
+      <line x1="72" y1="14" x2="72" y2="42" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" />
+      <line x1="80" y1="14" x2="80" y2="30" stroke="#cad8cb" stroke-width="2" stroke-linecap="round" />
+      <line x1="88" y1="14" x2="88" y2="46" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" />
+      <line x1="96" y1="14" x2="96" y2="36" stroke="#a7bfa9" stroke-width="2.5" stroke-linecap="round" />
+      <line x1="104" y1="14" x2="104" y2="48" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+      <line x1="112" y1="14" x2="112" y2="30" stroke="#cad8cb" stroke-width="2" stroke-linecap="round" />
+      <line x1="120" y1="14" x2="120" y2="40" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" />
+    </g>
+
+    <rect x="15" y="142" width="130" height="3" rx="1.5" fill="#20482d" />
+  </g>
+
+  <!-- Top Right: Isometric 3D Talking Card Cubes -->
+  <g id="top-right-cubes" transform="translate(565, 30)">
+    <!-- Cube 1 -->
+    <g transform="translate(45, 10)">
+      <polygon points="40,0 80,22 40,44 0,22" fill="#4e6f52" stroke="#628766" stroke-width="1.2" />
+      <polygon points="0,22 40,44 40,92 0,70" fill="#1b3723" stroke="#25472e" stroke-width="1.2" />
+      <polygon points="40,44 80,22 80,70 40,92" fill="#285033" stroke="#356541" stroke-width="1.2" />
+      <circle cx="40" cy="22" r="2.5" fill="#cad8cb" />
+    </g>
+
+    <!-- Cube 2 -->
+    <g transform="translate(0, 55)">
+      <polygon points="40,0 80,22 40,44 0,22" fill="#628766" stroke="#84a587" stroke-width="1.2" />
+      <polygon points="0,22 40,44 40,92 0,70" fill="#152b1c" stroke="#1f3d28" stroke-width="1.2" />
+      <polygon points="40,44 80,22 80,70 40,92" fill="#325e3d" stroke="#41774f" stroke-width="1.2" />
+    </g>
+
+    <!-- Cube 3 -->
+    <g transform="translate(90, 55)">
+      <polygon points="40,0 80,22 40,44 0,22" fill="#3e5841" stroke="#4e6f52" stroke-width="1.2" />
+      <polygon points="0,22 40,44 40,92 0,70" fill="#0d1b11" stroke="#193321" stroke-width="1.2" />
+      <polygon points="40,44 80,22 80,70 40,92" fill="#1f3d28" stroke="#2a5236" stroke-width="1.2" />
+    </g>
+
+    <!-- Dot Mesh -->
+    <rect x="-10" y="155" width="200" height="50" fill="url(#denseDotPattern)" />
+  </g>
+
+  <!-- Horizontal Divider Line -->
+  <line x1="0" y1="320" x2="800" y2="320" stroke="#22442a" stroke-width="1.5" />
+
+  <!-- ========================================== -->
+  <!-- MIDDLE SECTION: TOKENS, STAR & SPOKES      -->
+  <!-- ========================================== -->
+  <!-- Ascending Chevron Triangles -->
+  <g id="ascending-triangles" transform="translate(50, 350)">
+    <polygon points="30,0 0,45 60,45" fill="#628766" opacity="0.6" />
+    <polygon points="30,55 0,100 60,100" fill="#a7bfa9" opacity="0.85" />
+    <polygon points="30,110 0,155 60,155" fill="#cad8cb" />
+  </g>
+
+  <!-- Turquoise / Teal Talking Card Block -->
+  <g id="teal-card-block" transform="translate(150, 390)">
+    <rect x="0" y="0" width="110" height="145" rx="14" fill="url(#tealGrad)" stroke="#38bdf8" stroke-width="2" filter="url(#softGlow)" />
+    <circle cx="55" cy="46" r="24" fill="#ffffff" opacity="0.2" />
+    <circle cx="55" cy="46" r="12" fill="#ffffff" opacity="0.8" />
+    <rect x="30" y="90" width="50" height="3.5" rx="1.75" fill="#ffffff" opacity="0.9" />
+    <rect x="38" y="100" width="34" height="3.5" rx="1.75" fill="#ffffff" opacity="0.7" />
+    <rect x="44" y="110" width="22" height="3.5" rx="1.75" fill="#ffffff" opacity="0.5" />
+  </g>
+
+  <!-- 8-POINTED GOLDEN SPARK STAR -->
+  <g id="golden-center-star" transform="translate(295, 385)">
+    <circle cx="45" cy="45" r="48" fill="#fbbf24" opacity="0.25" filter="url(#softGlow)" />
+    <polygon points="45,0 57,32 90,45 57,58 45,90 33,58 0,45 33,32" fill="url(#amberGrad)" stroke="#fef08a" stroke-width="2" filter="url(#softGlow)" />
+    <polygon points="45,20 52,45 45,70 38,45" fill="#ffffff" />
+    <polygon points="20,45 45,52 70,45 45,38" fill="#ffffff" />
+  </g>
+
+  <!-- Discussion Token Badges Floating Grid (Kept fully in-bounds) -->
+  <g id="token-badges" transform="translate(420, 350)">
+    <!-- Bertanya (Pink) -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="115" height="38" rx="10" fill="#831843" stroke="#f472b6" stroke-width="1.5" />
+      <circle cx="18" cy="19" r="8" fill="#db2777" />
+      <text x="18" y="23" font-family="system-ui, sans-serif" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">?</text>
+      <text x="34" y="23" font-family="system-ui, sans-serif" font-size="10.5" font-weight="700" fill="#fbcfe8">BERTANYA</text>
+    </g>
+
+    <!-- Menjawab (Amber) -->
+    <g transform="translate(130, 0)">
+      <rect x="0" y="0" width="115" height="38" rx="10" fill="#78350f" stroke="#fbbf24" stroke-width="1.5" />
+      <circle cx="18" cy="19" r="8" fill="#d97706" />
+      <polygon points="18,13 20,18 25,18 21,21 23,26 18,23 13,26 15,21 11,18 16,18" fill="#ffffff" />
+      <text x="34" y="23" font-family="system-ui, sans-serif" font-size="10.5" font-weight="700" fill="#fef3c7">MENJAWAB</text>
+    </g>
+
+    <!-- Audio Dots Track -->
+    <g transform="translate(15, 60)">
+      <circle cx="10" cy="0" r="5" fill="#628766" />
+      <circle cx="35" cy="0" r="5" fill="#84a587" />
+      <circle cx="60" cy="0" r="5" fill="#a7bfa9" />
+      <circle cx="85" cy="0" r="5" fill="#cad8cb" />
+      <circle cx="110" cy="0" r="5" fill="#ffffff" />
+    </g>
+
+    <!-- Berpendapat (Cyan) -->
+    <g transform="translate(0, 85)">
+      <rect x="0" y="0" width="125" height="38" rx="10" fill="#0c4a6e" stroke="#38bdf8" stroke-width="1.5" />
+      <circle cx="18" cy="19" r="8" fill="#0284c7" />
+      <path d="M 13 18 Q 18 14 23 18 Q 18 22 13 18 Z" fill="#ffffff" />
+      <text x="34" y="23" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="#e0f2fe">BERPENDAPAT</text>
+    </g>
+
+    <!-- Menanggapi (Emerald) -->
+    <g transform="translate(140, 85)">
+      <rect x="0" y="0" width="125" height="38" rx="10" fill="#064e3b" stroke="#34d399" stroke-width="1.5" />
+      <circle cx="18" cy="19" r="8" fill="#059669" />
+      <path d="M 14 19 L 22 19 M 19 16 L 23 19 L 19 22" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" />
+      <text x="34" y="23" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="#d1fae5">MENANGGAPI</text>
+    </g>
+  </g>
+
+  <!-- Radial Dandelion Voice Resonance Spokes -->
+  <g id="spoke-radial-resonance" transform="translate(710, 460)">
+    <g stroke="#84a587" stroke-width="1.8" stroke-linecap="round" opacity="0.8">
+      <line x1="0" y1="0" x2="-65" y2="-30" />
+      <line x1="0" y1="0" x2="-60" y2="-10" />
+      <line x1="0" y1="0" x2="-55" y2="12" />
+      <line x1="0" y1="0" x2="-35" y2="35" />
+      <line x1="0" y1="0" x2="-15" y2="52" />
+      <line x1="0" y1="0" x2="12" y2="60" />
+      <line x1="0" y1="0" x2="35" y2="52" />
+      <line x1="0" y1="0" x2="55" y2="32" />
+      <line x1="0" y1="0" x2="68" y2="8" />
+      <line x1="0" y1="0" x2="64" y2="-20" />
+      <line x1="0" y1="0" x2="48" y2="-44" />
+      <line x1="0" y1="0" x2="24" y2="-60" />
+      <line x1="0" y1="0" x2="-8" y2="-64" />
+      <line x1="0" y1="0" x2="-40" y2="-55" />
+    </g>
+    <g fill="#cad8cb">
+      <circle cx="-65" cy="-30" r="3.5" />
+      <circle cx="-60" cy="-10" r="3.5" />
+      <circle cx="-55" cy="12" r="3.5" />
+      <circle cx="-35" cy="35" r="3.5" />
+      <circle cx="-15" cy="52" r="3.5" />
+      <circle cx="12" cy="60" r="3.5" />
+      <circle cx="35" cy="52" r="3.5" />
+      <circle cx="55" cy="32" r="3.5" />
+      <circle cx="68" cy="8" r="3.5" />
+      <circle cx="64" cy="-20" r="3.5" />
+      <circle cx="48" cy="-44" r="3.5" />
+      <circle cx="24" cy="-60" r="3.5" />
+      <circle cx="-8" cy="-64" r="3.5" />
+      <circle cx="-40" cy="-55" r="3.5" />
+    </g>
+    <circle cx="0" cy="0" r="11" fill="#3e5841" stroke="#cad8cb" stroke-width="2" />
+    <circle cx="0" cy="0" r="4" fill="#fde047" />
+  </g>
+
+  <!-- ========================================== -->
+  <!-- BOTTOM SECTION: RACETRACK LOOP & WAVES     -->
+  <!-- ========================================== -->
+  <!-- Cycle Racetrack Loop (Model Turn Taking) -->
+  <g id="bottom-cycle-loop" transform="translate(560, 680)">
+    <path d="M 0,-160 C 90,-160 160,-90 160,0 L 160,80 C 160,125 125,160 80,160 L -80,160 C -160,160 -160,80 -160,0 C -160,-90 -90,-160 0,-160 Z" fill="url(#loopGrad)" stroke="#3e5841" stroke-width="2.5" />
+    
+    <path d="M 0,-100 C 55,-100 100,-55 100,0 L 100,50 C 100,75 75,100 50,100 L -50,100 C -100,100 -100,50 -100,0 C -100,-55 -55,-100 0,-100 Z" fill="#0d1f13" stroke="#25472e" stroke-width="1.8" />
+
+    <!-- Center Node Bead -->
+    <circle cx="0" cy="0" r="11" fill="#ffffff" filter="url(#softGlow)" />
+    <circle cx="0" cy="0" r="5" fill="#10b981" />
+    <circle cx="0" cy="0" r="22" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="3 3" fill="none" opacity="0.6" />
+
+    <path d="M -100,0 C -100,55 -55,100 0,100 L 0,0 Z" fill="url(#emeraldGrad)" opacity="0.8" />
+  </g>
+
+  <!-- Bottom Left: Concentric Arcs -->
+  <g id="bottom-left-arcs">
+    <path d="M 0,850 L 0,640 A 210,210 0 0,1 210,850 Z" fill="url(#sagePrimary)" />
+    <path d="M 0,850 L 0,715 A 135,135 0 0,1 135,850 Z" fill="url(#sageVibrant)" />
+    <path d="M 0,850 L 0,785 A 65,65 0 0,1 65,850 Z" fill="#cad8cb" />
+  </g>
+
+  <!-- Bottom Wavy Sound Lines -->
+  <g id="bottom-waves" transform="translate(380, 780)">
+    <path d="M 0,15 Q 28,-5 56,15 T 112,15 T 168,15 T 224,15 T 280,15" fill="none" stroke="#a7bfa9" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M 0,32 Q 28,12 56,32 T 112,32 T 168,32 T 224,32 T 280,32" fill="none" stroke="#cad8cb" stroke-width="2" stroke-linecap="round" />
+    <path d="M 0,50 Q 28,30 56,50 T 112,50 T 168,50 T 224,50 T 280,50" fill="none" stroke="#628766" stroke-width="1.8" stroke-linecap="round" />
+  </g>
+
+  <!-- Bottom Right Dot Grid Panel -->
+  <g id="bottom-right-dots" transform="translate(720, 730)">
+    <rect x="0" y="0" width="60" height="100" fill="url(#dotPattern)" />
+  </g>
+</svg>
