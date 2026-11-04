@@ -815,63 +815,65 @@ export default function Home() {
                       })}
                     </div>
                   </div>
-
-                  {/* Log Riwayat Kartu Bicara (Terintegrasi Rapi di Tab Statistik) */}
-                  <div className="p-6 bg-white rounded-3xl border border-sky-100 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-sm sm:text-base">
-                          Log Riwayat Kartu Bicara
-                        </h3>
-                        <p className="text-xs text-slate-500">
-                          Urutan kronologis siswa yang telah menggunakan kartu bicara di kelas ini
-                        </p>
-                      </div>
-                      <span className="text-xs font-bold px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
-                        Total: {allUsedTokens.length} Kali
-                      </span>
-                    </div>
-
-                    {allUsedTokens.length > 0 ? (
-                      <div className="space-y-2">
-                        {allUsedTokens.map((tok) => (
-                          <div
-                            key={tok.id}
-                            className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-between gap-3"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-700 font-bold text-xs flex items-center justify-center border border-sky-100">
-                                #{tok.deskNumber}
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-slate-900 text-xs sm:text-sm">
-                                  {tok.studentName}
-                                </h4>
-                                <span className="text-[11px] text-slate-400">
-                                  {new Date(tok.usedAt).toLocaleTimeString("id-ID")} · Meja #{tok.deskNumber}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                              <TokenBadge type={tok.type} size="sm" />
-                              <span className="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
-                                {tok.durationSeconds}s
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="p-8 text-center text-slate-400 text-xs">
-                        Belum ada kartu bicara yang terpakai pada kelas ini.
-                      </div>
-                    )}
-                  </div>
                 </div>
               )}
 
-              {/* TAB 3: PENGATURAN KELAS */}
+              {/* TAB 3: RIWAYAT TOKEN */}
+              {activeTeacherTab === "TIMELINE" && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="p-4 sm:p-5 rounded-3xl bg-white border border-sky-100 shadow-sm flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+                        Log Riwayat Kartu Bicara
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Urutan kronologis siswa yang telah menggunakan kartu bicara di kelas ini
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
+                      Total: {allUsedTokens.length} Kali
+                    </span>
+                  </div>
+
+                  {allUsedTokens.length > 0 ? (
+                    <div className="space-y-2">
+                      {allUsedTokens.map((tok) => (
+                        <div
+                          key={tok.id}
+                          className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-between gap-3"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-700 font-bold text-xs flex items-center justify-center border border-sky-100">
+                              #{tok.deskNumber}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-slate-900 text-xs sm:text-sm">
+                                {tok.studentName}
+                              </h4>
+                              <span className="text-[11px] text-slate-400">
+                                {new Date(tok.usedAt).toLocaleTimeString("id-ID")} · Meja #{tok.deskNumber}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <TokenBadge type={tok.type} size="sm" />
+                            <span className="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
+                              {tok.durationSeconds}s
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-10 rounded-3xl bg-white border border-sky-100 text-center text-slate-400 text-xs">
+                      Belum ada token yang terpakai pada kelas ini.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 4: PENGATURAN KELAS */}
               {activeTeacherTab === "SETTINGS" && (
                 <div className="max-w-2xl mx-auto p-6 bg-white rounded-3xl border border-sky-100 shadow-sm space-y-5 animate-in fade-in duration-200">
                   <div>
