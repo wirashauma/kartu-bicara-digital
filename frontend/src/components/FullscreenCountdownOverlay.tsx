@@ -150,7 +150,7 @@ export function FullscreenCountdownOverlay({
           <div className="flex flex-col items-center space-y-2">
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
               <span className="px-3.5 py-1 rounded-xl bg-white/15 text-white text-xs sm:text-sm font-bold tracking-wider backdrop-blur-md border border-white/20">
-                Meja #{speaker.deskNumber}
+                #{speaker.deskNumber}
               </span>
               <TokenBadge type={speaker.tokenType} size="md" />
             </div>
