@@ -91,7 +91,7 @@ export function StudentGrid({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari siswa atau no meja..."
+            placeholder="Cari nama atau nomor siswa..."
             className="w-full pl-9 pr-4 py-1.5 bg-sky-50/40 border border-sky-100 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-500 transition-all"
           />
           {searchQuery && (
@@ -179,7 +179,7 @@ export function StudentGrid({
                       : "border border-sky-100/90 hover:border-sky-300 hover:shadow-xs"
                   )}
                 >
-                  {/* Top: Meja & Badge Status */}
+                  {/* Top: Nomor Siswa & Badge Status */}
                   <div className="flex items-center justify-between gap-1 mb-2.5">
                     <span
                       className={cn(
@@ -191,7 +191,7 @@ export function StudentGrid({
                           : "bg-sky-50 text-sky-800 border border-sky-200/60"
                       )}
                     >
-                      Meja #{student.deskNumber}
+                      #{student.deskNumber}
                     </span>
 
                     <div className="flex items-center gap-1.5">
