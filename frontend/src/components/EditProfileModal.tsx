@@ -25,10 +25,13 @@ export function EditProfileModal({
 
   useEffect(() => {
     if (currentUser) {
-      setName(currentUser.name || "");
-      setEmail(currentUser.email || "");
-      setSchool(currentUser.school || "");
-      setSubject(currentUser.subject || "");
+      const timer = setTimeout(() => {
+        setName(currentUser.name || "");
+        setEmail(currentUser.email || "");
+        setSchool(currentUser.school || "");
+        setSubject(currentUser.subject || "");
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [currentUser]);
 

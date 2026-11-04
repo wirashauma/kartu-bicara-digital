@@ -21,10 +21,6 @@ import {
   Search,
   CheckCircle2,
   AlertCircle,
-  HelpCircle,
-  Lightbulb,
-  MessageSquare,
-  Repeat2,
   ShieldCheck,
 } from "lucide-react";
 

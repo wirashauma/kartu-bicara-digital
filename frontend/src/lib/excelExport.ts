@@ -133,7 +133,7 @@ export function exportClassDiscussionToExcel({
   };
 
   // Helper untuk set cell value & style
-  const setCell = (r: number, c: number, v: string | number, style: any, type: "s" | "n" = "s") => {
+  const setCell = (r: number, c: number, v: string | number, style: Record<string, unknown>, type: "s" | "n" = "s") => {
     const cellRef = XLSX.utils.encode_cell({ r, c });
     ws[cellRef] = { v, t: type, s: style };
   };

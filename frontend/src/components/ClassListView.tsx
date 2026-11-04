@@ -10,7 +10,6 @@ import {
   Coins,
   ArrowRight,
   Hash,
-  Sparkles,
   School,
   Trash2,
   CheckCircle2,

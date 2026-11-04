@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, HelpCircle, BookOpen, CheckCircle, Clock } from "lucide-react";
+import { X, HelpCircle } from "lucide-react";
 
 export interface FaqModalProps {
   isOpen: boolean;

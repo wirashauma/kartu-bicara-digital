@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { AlertTriangle, Trash2, LogOut, Info, CheckCircle2, X } from "lucide-react";
+import { AlertTriangle, Trash2, Info, CheckCircle2, X } from "lucide-react";
 
 export type ConfirmVariant = "danger" | "warning" | "info" | "success";
 

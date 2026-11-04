@@ -1,35 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Play,
   Pause,
   PlusCircle,
   Square,
-  LogOut,
-  Mic,
-  Flame,
-  Clock,
   Sparkles,
-  BarChart3,
   Users,
-  Coins,
-  AlertTriangle,
-  History,
-  Settings,
-  Download,
-  RotateCcw,
-  CheckCircle2,
-  Save,
-  UserPen,
-  HelpCircle,
-  ChevronDown,
   ArrowLeft,
   UserPlus,
-  Hash,
-  BookOpen,
   FileSpreadsheet,
 } from "lucide-react";
 import {
@@ -40,7 +21,6 @@ import {
   SessionStatus,
   Student,
   TokenType,
-  TOKEN_DEFINITIONS,
   Token,
 } from "@/types/session";
 import {
@@ -67,10 +47,6 @@ import { StudentDashboardView } from "@/components/StudentDashboardView";
 import {
   ClassStatsHeaderSkeleton,
   ClassListSkeleton,
-  DiscussionGridSkeleton,
-  AnalyticsDashboardSkeleton,
-  TimelineSkeleton,
-  StudentDashboardSkeleton,
 } from "@/components/skeletons";
 import { exportClassDiscussionToExcel } from "@/lib/excelExport";
 import { cn } from "@/lib/utils";
@@ -98,7 +74,6 @@ export default function Home() {
   // 4. Modal Profil, FAQ & Konfirmasi Aksi Krusial
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isFaqOpen, setIsFaqOpen] = useState(false);
-  const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
 
   // Modal Konfirmasi Dialog Profesional
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
@@ -128,30 +103,37 @@ export default function Home() {
     autoWarningThresholdSeconds: 10,
   }));
 
-  const [sessionStatus, setSessionStatus] = useState<SessionStatus>("ACTIVE");
+  // Pengaturan Formulir Sementara
+  const [settingsForm, setSettingsForm] = useState<SessionConfig>(INITIAL_SESSION_CONFIG);
+  const [settingsSavedMessage, setSettingsSavedMessage] = useState("");
+
+  const sessionStatus: SessionStatus = "ACTIVE";
   const [activeSpeaker, setActiveSpeaker] = useState<ActiveSpeaker | null>(null);
 
   // Sinkronisasi Sesi saat Kelas Berganti
   useEffect(() => {
     if (currentClass) {
-      setConfig({
-        sessionCode: currentClass.sessionPin,
-        className: currentClass.name,
-        topic: currentClass.topic || "Diskusi Terbuka Model Arends",
-        subject: currentClass.subject,
-        tokensPerStudent: currentClass.tokensPerStudent,
-        speechTimeLimitSeconds: currentClass.speechTimeLimitSeconds,
-        autoWarningThresholdSeconds: 10,
-      });
-      setSettingsForm({
-        sessionCode: currentClass.sessionPin,
-        className: currentClass.name,
-        topic: currentClass.topic || "Diskusi Terbuka Model Arends",
-        subject: currentClass.subject,
-        tokensPerStudent: currentClass.tokensPerStudent,
-        speechTimeLimitSeconds: currentClass.speechTimeLimitSeconds,
-        autoWarningThresholdSeconds: 10,
-      });
+      const timer = setTimeout(() => {
+        setConfig({
+          sessionCode: currentClass.sessionPin,
+          className: currentClass.name,
+          topic: currentClass.topic || "Diskusi Terbuka Model Arends",
+          subject: currentClass.subject,
+          tokensPerStudent: currentClass.tokensPerStudent,
+          speechTimeLimitSeconds: currentClass.speechTimeLimitSeconds,
+          autoWarningThresholdSeconds: 10,
+        });
+        setSettingsForm({
+          sessionCode: currentClass.sessionPin,
+          className: currentClass.name,
+          topic: currentClass.topic || "Diskusi Terbuka Model Arends",
+          subject: currentClass.subject,
+          tokensPerStudent: currentClass.tokensPerStudent,
+          speechTimeLimitSeconds: currentClass.speechTimeLimitSeconds,
+          autoWarningThresholdSeconds: 10,
+        });
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [currentClass]);
 
@@ -185,7 +167,8 @@ export default function Home() {
     if (selectedClassId && classes.length > 0) {
       const exists = classes.some((c) => c.id === selectedClassId);
       if (!exists) {
-        setSelectedClassId(null);
+        const timer = setTimeout(() => setSelectedClassId(null), 0);
+        return () => clearTimeout(timer);
       }
     }
   }, [selectedClassId, classes, isHydrated]);
@@ -199,10 +182,6 @@ export default function Home() {
       console.error("Gagal menyimpan kbd_active_teacher_tab_v1", e);
     }
   }, [activeTeacherTab, isHydrated]);
-
-  // Pengaturan Formulir Sementara
-  const [settingsForm, setSettingsForm] = useState<SessionConfig>(INITIAL_SESSION_CONFIG);
-  const [settingsSavedMessage, setSettingsSavedMessage] = useState("");
 
   // 6. UI Filters & Modals
   const [selectedStudentForModal, setSelectedStudentForModal] = useState<Student | null>(null);
@@ -223,49 +202,52 @@ export default function Home() {
 
   // Baca pengguna & status tersimpan saat mount (Mencegah Hydration Mismatch)
   useEffect(() => {
-    // 1. Pengguna tersimpan
-    const user = getStoredUser();
-    if (user) {
-      setCurrentUser(user);
-    }
+    const timer = setTimeout(() => {
+      // 1. Pengguna tersimpan
+      const user = getStoredUser();
+      if (user) {
+        setCurrentUser(user);
+      }
 
-    // 2. Daftar kelas tersimpan
-    try {
-      const savedClasses = localStorage.getItem("kbd_classrooms_v1");
-      if (savedClasses) {
-        const parsed = JSON.parse(savedClasses);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setClasses(parsed);
+      // 2. Daftar kelas tersimpan
+      try {
+        const savedClasses = localStorage.getItem("kbd_classrooms_v1");
+        if (savedClasses) {
+          const parsed = JSON.parse(savedClasses);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setClasses(parsed);
+          }
         }
+      } catch (e) {
+        console.error("Gagal memuat kbd_classrooms_v1", e);
       }
-    } catch (e) {
-      console.error("Gagal memuat kbd_classrooms_v1", e);
-    }
 
-    // 3. ID kelas terpilih terakhir
-    try {
-      const savedClassId = localStorage.getItem("kbd_selected_class_id_v1");
-      if (savedClassId) {
-        setSelectedClassId(savedClassId);
+      // 3. ID kelas terpilih terakhir
+      try {
+        const savedClassId = localStorage.getItem("kbd_selected_class_id_v1");
+        if (savedClassId) {
+          setSelectedClassId(savedClassId);
+        }
+      } catch (e) {
+        console.error("Gagal memuat kbd_selected_class_id_v1", e);
       }
-    } catch (e) {
-      console.error("Gagal memuat kbd_selected_class_id_v1", e);
-    }
 
-    // 4. Tab aktif terakhir
-    try {
-      const savedTab = localStorage.getItem("kbd_active_teacher_tab_v1") as TeacherTab;
-      if (
-        savedTab &&
-        ["DISCUSSION", "ANALYTICS", "TIMELINE", "SETTINGS"].includes(savedTab)
-      ) {
-        setActiveTeacherTab(savedTab);
+      // 4. Tab aktif terakhir
+      try {
+        const savedTab = localStorage.getItem("kbd_active_teacher_tab_v1") as TeacherTab;
+        if (
+          savedTab &&
+          ["DISCUSSION", "ANALYTICS", "TIMELINE", "SETTINGS"].includes(savedTab)
+        ) {
+          setActiveTeacherTab(savedTab);
+        }
+      } catch (e) {
+        console.error("Gagal memuat kbd_active_teacher_tab_v1", e);
       }
-    } catch (e) {
-      console.error("Gagal memuat kbd_active_teacher_tab_v1", e);
-    }
 
-    setIsHydrated(true);
+      setIsHydrated(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const userRole: Role = currentUser ? currentUser.role : "TEACHER";
@@ -275,7 +257,8 @@ export default function Home() {
     if (userRole === "STUDENT" && !selectedClassId && classes.length > 0) {
       const match =
         classes.find((c) => c.name === currentUser?.className) || classes[0];
-      setSelectedClassId(match.id);
+      const timer = setTimeout(() => setSelectedClassId(match.id), 0);
+      return () => clearTimeout(timer);
     }
   }, [userRole, selectedClassId, classes, currentUser]);
 
@@ -290,7 +273,7 @@ export default function Home() {
     try {
       localStorage.removeItem("kbd_selected_class_id_v1");
       localStorage.removeItem("kbd_active_teacher_tab_v1");
-    } catch (e) {}
+    } catch {}
     setIsLogoutConfirmOpen(false);
     router.push("/login");
   };
@@ -860,6 +843,31 @@ export default function Home() {
                         Total: {allUsedTokens.length} Kali
                       </span>
                     </div>
+                  </div>
+
+                  {/* Kategori Filter Token */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                    {[
+                      { label: "Semua Kategori", val: null },
+                      { label: "Bertanya", val: "BERTANYA" as TokenType },
+                      { label: "Menjawab", val: "MENJAWAB" as TokenType },
+                      { label: "Berpendapat", val: "BERPENDAPAT" as TokenType },
+                      { label: "Sanggahan", val: "SANGGAHAN" as TokenType },
+                    ].map((btn) => (
+                      <button
+                        key={btn.label}
+                        type="button"
+                        onClick={() => setTimelineFilter(btn.val)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border",
+                          timelineFilter === btn.val
+                            ? "bg-sky-600 text-white border-sky-600 shadow-sm"
+                            : "bg-white text-slate-600 border-slate-200/80 hover:bg-sky-50 hover:text-sky-700"
+                        )}
+                      >
+                        {btn.label}
+                      </button>
+                    ))}
                   </div>
 
                   {allUsedTokens.length > 0 ? (

@@ -43,14 +43,10 @@ export interface ClassStatsHeaderProps {
 
 export function ClassStatsHeader({
   stats,
-  config,
-  status,
   activeTab,
   onTabChange,
   currentUser,
   onLogout,
-  onOpenEditProfile,
-  onOpenFaq,
   isMuted = false,
   onToggleMute,
   className,

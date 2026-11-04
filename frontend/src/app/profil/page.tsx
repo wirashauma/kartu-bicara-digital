@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   LogOut,
   Sliders,
-  Sparkles,
   School,
   Key,
   BadgeCheck,
@@ -90,19 +89,22 @@ export default function ProfilePage() {
 
   // Muat data profil saat komponen siap
   useEffect(() => {
-    const stored = getStoredUser() || DEMO_TEACHER;
-    setUser(stored);
-    setFormData((prev) => ({
-      ...prev,
-      name: stored.name || "",
-      email: stored.email || "",
-      school: stored.school || "SMAN 1 Teladan",
-      subject: stored.subject || "Sosiologi / Bahasa Indonesia",
-      nip: "19840512 200801 2 006",
-      phone: "+62 812-3456-7890",
-      bio: "Guru penggerak yang berdedikasi membangun iklim diskusi kelas yang adil, kritis, dan berkarakter melalui model kooperatif Time Token Arends.",
-    }));
-    setIsLoaded(true);
+    const timer = setTimeout(() => {
+      const stored = getStoredUser() || DEMO_TEACHER;
+      setUser(stored);
+      setFormData((prev) => ({
+        ...prev,
+        name: stored.name || "",
+        email: stored.email || "",
+        school: stored.school || "SMAN 1 Teladan",
+        subject: stored.subject || "Sosiologi / Bahasa Indonesia",
+        nip: "19840512 200801 2 006",
+        phone: "+62 812-3456-7890",
+        bio: "Guru penggerak yang berdedikasi membangun iklim diskusi kelas yang adil, kritis, dan berkarakter melalui model kooperatif Time Token Arends.",
+      }));
+      setIsLoaded(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Simpan Perubahan Data Diri

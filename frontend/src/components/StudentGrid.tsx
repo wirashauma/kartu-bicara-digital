@@ -3,12 +3,9 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Users,
   AlertTriangle,
   Mic,
-  Coins,
   Search,
-  UserCheck,
   Flame,
   Trash2,
 } from "lucide-react";

@@ -3,14 +3,12 @@
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Clock,
   PlusCircle,
   Square,
   Pause,
   Play,
   Volume2,
   VolumeX,
-  Sparkles,
   AlertOctagon,
 } from "lucide-react";
 import { ActiveSpeaker, TOKEN_DEFINITIONS } from "@/types/session";

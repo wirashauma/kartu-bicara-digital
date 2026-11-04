@@ -11,16 +11,10 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
-  Layers,
-  Users,
   BarChart3,
   ChevronDown,
-  Volume2,
-  ShieldCheck,
-  Award,
   ArrowRight,
   School,
-  Check,
   LayoutDashboard,
   UserPen,
   LogOut,
@@ -148,8 +142,11 @@ export default function FaqPage() {
   const [expandedId, setExpandedId] = useState<string | null>("faq-1");
 
   useEffect(() => {
-    setUser(getStoredUser() || DEMO_TEACHER);
-    setIsLoaded(true);
+    const timer = setTimeout(() => {
+      setUser(getStoredUser() || DEMO_TEACHER);
+      setIsLoaded(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {

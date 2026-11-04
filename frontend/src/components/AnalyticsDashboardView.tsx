@@ -2,7 +2,6 @@
 
 import React, { useMemo } from "react";
 import {
-  Users,
   AlertTriangle,
   Coins,
   Clock,

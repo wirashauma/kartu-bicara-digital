@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { X, UserPlus, Users, Hash, Coins } from "lucide-react";
-import { Student } from "@/types/session";
 
 interface AddStudentModalProps {
   isOpen: boolean;
@@ -32,10 +31,13 @@ export function AddStudentModal({
 
   useEffect(() => {
     if (isOpen) {
-      setDeskNumber(suggestedDeskNumber);
-      setTokensQuota(tokensPerStudent);
-      setName("");
-      setErrorMessage("");
+      const timer = setTimeout(() => {
+        setDeskNumber(suggestedDeskNumber);
+        setTokensQuota(tokensPerStudent);
+        setName("");
+        setErrorMessage("");
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, suggestedDeskNumber, tokensPerStudent]);
 

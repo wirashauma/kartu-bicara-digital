@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Plus, BookOpen, Clock, Coins, Sparkles, Hash } from "lucide-react";
+import { X, Plus, BookOpen, Clock, Coins, Hash } from "lucide-react";
 import { ClassRoom } from "@/types/session";
 
 interface AddClassModalProps {
@@ -24,8 +24,11 @@ export function AddClassModal({ isOpen, onClose, onAddClass }: AddClassModalProp
   // Generate kode PIN baru setiap kali modal dibuka di sisi client
   React.useEffect(() => {
     if (isOpen) {
-      setSessionPin(`TT-${Math.floor(1000 + Math.random() * 9000)}`);
-      setErrorMessage("");
+      const timer = setTimeout(() => {
+        setSessionPin(`TT-${Math.floor(1000 + Math.random() * 9000)}`);
+        setErrorMessage("");
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
