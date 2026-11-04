@@ -30,6 +30,7 @@ import {
   UserPlus,
   Hash,
   BookOpen,
+  FileSpreadsheet,
 } from "lucide-react";
 import {
   ActiveSpeaker,
@@ -61,31 +62,28 @@ import { ClassListView } from "@/components/ClassListView";
 import { AddClassModal } from "@/components/AddClassModal";
 import { AddStudentModal } from "@/components/AddStudentModal";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { AnalyticsDashboardView } from "@/components/AnalyticsDashboardView";
+import { StudentDashboardView } from "@/components/StudentDashboardView";
+import {
+  ClassStatsHeaderSkeleton,
+  ClassListSkeleton,
+  DiscussionGridSkeleton,
+  AnalyticsDashboardSkeleton,
+  TimelineSkeleton,
+  StudentDashboardSkeleton,
+} from "@/components/skeletons";
+import { exportClassDiscussionToExcel } from "@/lib/excelExport";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
   const router = useRouter();
 
-  // 1. Pengguna Terotentikasi
+  // 1. Pengguna Terotentikasi & Hydration Status
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // 2. Daftar Kelas (Classrooms) & Kelas Terpilih
-  const [classes, setClasses] = useState<ClassRoom[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("kbd_classrooms_v1");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
-          }
-        }
-      } catch (err) {
-        console.error("Gagal memuat kbd_classrooms_v1 dari localStorage", err);
-      }
-    }
-    return generateInitialClassrooms();
-  });
+  const [classes, setClasses] = useState<ClassRoom[]>(() => generateInitialClassrooms());
 
   // Jika null, guru melihat halaman Daftar Card Kelas. Jika diisi, guru masuk ke detail kelas tersebut.
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -159,12 +157,48 @@ export default function Home() {
 
   // Simpan data kelas ke localStorage secara otomatis
   useEffect(() => {
+    if (!isHydrated) return;
     try {
       localStorage.setItem("kbd_classrooms_v1", JSON.stringify(classes));
     } catch (e) {
       console.error("Gagal menyimpan ke localStorage", e);
     }
-  }, [classes]);
+  }, [classes, isHydrated]);
+
+  // Simpan ID kelas aktif ke localStorage secara otomatis (agar tidak balik ke list kelas saat refresh)
+  useEffect(() => {
+    if (!isHydrated) return;
+    try {
+      if (selectedClassId) {
+        localStorage.setItem("kbd_selected_class_id_v1", selectedClassId);
+      } else {
+        localStorage.removeItem("kbd_selected_class_id_v1");
+      }
+    } catch (e) {
+      console.error("Gagal menyimpan kbd_selected_class_id_v1", e);
+    }
+  }, [selectedClassId, isHydrated]);
+
+  // Validasi ID kelas: Jika ID yang tersimpan tidak ditemukan di classes, reset ke null
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (selectedClassId && classes.length > 0) {
+      const exists = classes.some((c) => c.id === selectedClassId);
+      if (!exists) {
+        setSelectedClassId(null);
+      }
+    }
+  }, [selectedClassId, classes, isHydrated]);
+
+  // Simpan tab aktif pendidik ke localStorage
+  useEffect(() => {
+    if (!isHydrated) return;
+    try {
+      localStorage.setItem("kbd_active_teacher_tab_v1", activeTeacherTab);
+    } catch (e) {
+      console.error("Gagal menyimpan kbd_active_teacher_tab_v1", e);
+    }
+  }, [activeTeacherTab, isHydrated]);
 
   // Pengaturan Formulir Sementara
   const [settingsForm, setSettingsForm] = useState<SessionConfig>(INITIAL_SESSION_CONFIG);
@@ -187,12 +221,51 @@ export default function Home() {
     playClick,
   } = useAudioWarning({ initialMuted: false, initialVolume: 0.85 });
 
-  // Baca pengguna tersimpan saat mount
+  // Baca pengguna & status tersimpan saat mount (Mencegah Hydration Mismatch)
   useEffect(() => {
+    // 1. Pengguna tersimpan
     const user = getStoredUser();
     if (user) {
       setCurrentUser(user);
     }
+
+    // 2. Daftar kelas tersimpan
+    try {
+      const savedClasses = localStorage.getItem("kbd_classrooms_v1");
+      if (savedClasses) {
+        const parsed = JSON.parse(savedClasses);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setClasses(parsed);
+        }
+      }
+    } catch (e) {
+      console.error("Gagal memuat kbd_classrooms_v1", e);
+    }
+
+    // 3. ID kelas terpilih terakhir
+    try {
+      const savedClassId = localStorage.getItem("kbd_selected_class_id_v1");
+      if (savedClassId) {
+        setSelectedClassId(savedClassId);
+      }
+    } catch (e) {
+      console.error("Gagal memuat kbd_selected_class_id_v1", e);
+    }
+
+    // 4. Tab aktif terakhir
+    try {
+      const savedTab = localStorage.getItem("kbd_active_teacher_tab_v1") as TeacherTab;
+      if (
+        savedTab &&
+        ["DISCUSSION", "ANALYTICS", "TIMELINE", "SETTINGS"].includes(savedTab)
+      ) {
+        setActiveTeacherTab(savedTab);
+      }
+    } catch (e) {
+      console.error("Gagal memuat kbd_active_teacher_tab_v1", e);
+    }
+
+    setIsHydrated(true);
   }, []);
 
   const userRole: Role = currentUser ? currentUser.role : "TEACHER";
@@ -213,6 +286,11 @@ export default function Home() {
   const executeLogout = () => {
     clearStoredUser();
     setCurrentUser(null);
+    setSelectedClassId(null);
+    try {
+      localStorage.removeItem("kbd_selected_class_id_v1");
+      localStorage.removeItem("kbd_active_teacher_tab_v1");
+    } catch (e) {}
     setIsLogoutConfirmOpen(false);
     router.push("/login");
   };
@@ -329,6 +407,13 @@ export default function Home() {
     }
     return list;
   }, [students, timelineFilter]);
+
+  // Seluruh Token Terpakai Tanpa Filter (Untuk Riwayat Siswa & Live Feed)
+  const allClassTokensUnfiltered = useMemo(() => {
+    const list: Token[] = students.flatMap((s) => s.usedTokens);
+    list.sort((a, b) => new Date(b.usedAt).getTime() - new Date(a.usedAt).getTime());
+    return list;
+  }, [students]);
 
   // Timer Interval: Hitung Mundur Pembicara Aktif
   useEffect(() => {
@@ -509,6 +594,17 @@ export default function Home() {
     setSettingsSavedMessage("Sesi kelas telah direset ke kondisi awal.");
     setTimeout(() => setSettingsSavedMessage(""), 3000);
   };
+
+  if (!isHydrated) {
+    return (
+      <main className="min-h-screen bg-[#F0F7FF] text-slate-900 flex flex-col font-sans">
+        <ClassStatsHeaderSkeleton />
+        <div className="flex-1 px-4 sm:px-6 py-6 max-w-7xl mx-auto w-full">
+          <ClassListSkeleton />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#F0F7FF] text-slate-900 flex flex-col font-sans">
@@ -714,114 +810,24 @@ export default function Home() {
 
               {/* TAB 2: STATISTIK & EVALUASI */}
               {activeTeacherTab === "ANALYTICS" && (
-                <div className="space-y-6 animate-in fade-in duration-200">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="p-4 bg-white rounded-3xl border border-sky-100 shadow-2xs space-y-1">
-                      <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-                        <span>Tingkat Partisipasi</span>
-                        <BarChart3 className="w-4 h-4 text-sky-600" />
-                      </div>
-                      <div className="text-2xl font-black text-slate-900">
-                        {classStats.participationRate}%
-                      </div>
-                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-2">
-                        <div
-                          className="bg-sky-600 h-full rounded-full transition-all"
-                          style={{ width: `${classStats.participationRate}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-white rounded-3xl border border-sky-100 shadow-2xs space-y-1">
-                      <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-                        <span>Total Siswa Berbicara</span>
-                        <Users className="w-4 h-4 text-emerald-600" />
-                      </div>
-                      <div className="text-2xl font-black text-slate-900">
-                        {classStats.studentsSpokenCount}{" "}
-                        <span className="text-xs text-slate-400 font-normal">
-                          / {classStats.totalStudents}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-emerald-600 font-medium pt-1">
-                        Telah aktif berkontribusi
-                      </p>
-                    </div>
-
-                    <div className="p-4 bg-white rounded-3xl border border-sky-100 shadow-2xs space-y-1">
-                      <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-                        <span>Siswa Belum Berbicara</span>
-                        <AlertTriangle className="w-4 h-4 text-amber-500" />
-                      </div>
-                      <div className="text-2xl font-black text-amber-600">
-                        {classStats.studentsIdleCount}
-                      </div>
-                      <p className="text-[11px] text-amber-600 font-medium pt-1">
-                        Perlu diprioritaskan
-                      </p>
-                    </div>
-
-                    <div className="p-4 bg-white rounded-3xl border border-sky-100 shadow-2xs space-y-1">
-                      <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-                        <span>Token Terpakai</span>
-                        <Coins className="w-4 h-4 text-sky-600" />
-                      </div>
-                      <div className="text-2xl font-black text-slate-900">
-                        {classStats.totalTokensUsed}{" "}
-                        <span className="text-xs text-slate-400 font-normal">
-                          / {classStats.totalTokensAllocated}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-sky-600 font-medium pt-1">
-                        {classStats.totalTokensRemaining} token tersisa
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Distribusi 4 Kategori Taksonomi Kartu */}
-                  <div className="p-6 bg-white rounded-3xl border border-sky-100 shadow-sm space-y-4">
-                    <h3 className="font-bold text-slate-900 text-sm">
-                      Distribusi 4 Kategori Kartu Bicara (Model Arends)
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {(
-                        [
-                          "BERTANYA",
-                          "MENJAWAB",
-                          "BERPENDAPAT",
-                          "MENANGGAPI",
-                        ] as TokenType[]
-                      ).map((type) => {
-                        const def = TOKEN_DEFINITIONS[type];
-                        const count = classStats.distributionByType[type] || 0;
-                        return (
-                          <div
-                            key={type}
-                            className={cn(
-                              "p-3.5 rounded-2xl border flex flex-col justify-between",
-                              def.lightBgClass,
-                              def.borderClass
-                            )}
-                          >
-                            <span className={cn("text-xs font-bold", def.textClass)}>
-                              {def.label}
-                            </span>
-                            <div className="text-2xl font-black text-slate-900 mt-2">
-                              {count}
-                            </div>
-                            <span className="text-[10px] text-slate-400">kontribusi</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
+                <AnalyticsDashboardView
+                  stats={classStats}
+                  students={students}
+                  currentClass={currentClass}
+                  allUsedTokens={allUsedTokens}
+                  currentUser={currentUser}
+                  onCallStudent={(student) => {
+                    setSelectedStudentForModal(student);
+                    setIsModalOpen(true);
+                  }}
+                  onSwitchToTimeline={() => setActiveTeacherTab("TIMELINE")}
+                />
               )}
 
               {/* TAB 3: RIWAYAT TOKEN */}
               {activeTeacherTab === "TIMELINE" && (
                 <div className="space-y-4 animate-in fade-in duration-200">
-                  <div className="p-4 sm:p-5 rounded-3xl bg-white border border-sky-100 shadow-sm flex items-center justify-between">
+                  <div className="p-4 sm:p-5 rounded-3xl bg-white border border-sky-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <h3 className="font-bold text-slate-900 text-sm sm:text-base">
                         Log Riwayat Kartu Bicara
@@ -830,9 +836,30 @@ export default function Home() {
                         Urutan kronologis siswa yang telah menggunakan kartu bicara di kelas ini
                       </p>
                     </div>
-                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
-                      Total: {allUsedTokens.length} Kali
-                    </span>
+
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          exportClassDiscussionToExcel({
+                            currentClass,
+                            stats: classStats,
+                            students,
+                            allUsedTokens,
+                            currentUser,
+                          })
+                        }
+                        className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs group"
+                        title="Unduh rekap data sesi ini dalam format Excel (.xlsx)"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 group-hover:scale-110 transition-transform" />
+                        <span>Ekspor Excel (.xlsx)</span>
+                      </button>
+
+                      <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-100">
+                        Total: {allUsedTokens.length} Kali
+                      </span>
+                    </div>
                   </div>
 
                   {allUsedTokens.length > 0 ? (
@@ -851,7 +878,7 @@ export default function Home() {
                                 {tok.studentName}
                               </h4>
                               <span className="text-[11px] text-slate-400">
-                                {new Date(tok.usedAt).toLocaleTimeString("id-ID")} · Meja #{tok.deskNumber}
+                                {new Date(tok.usedAt).toLocaleTimeString("id-ID")} · #{tok.deskNumber}
                               </span>
                             </div>
                           </div>
@@ -999,114 +1026,16 @@ export default function Home() {
         </div>
       ) : (
         /* 2. VIEW SISWA / PESERTA DIDIK */
-        <div className="flex-1 flex flex-col">
-          <header className="w-full bg-gradient-to-r from-sky-600 via-sky-600 to-blue-600 border-b border-sky-500/40 text-white shadow-sm sticky top-0 z-30 select-none">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-white text-sky-800 flex items-center justify-center font-black text-sm tracking-tight shadow-md">
-                  KBD
-                </div>
-                <div>
-                  <h1 className="text-sm sm:text-base font-black text-white leading-tight">
-                    Ruang Diskusi Siswa
-                  </h1>
-                  <span className="text-[10px] sm:text-[11px] font-bold text-sky-100 uppercase">
-                    {config.className} · PIN #{config.sessionCode}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleLogout}
-                  className="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs flex items-center gap-1.5 border border-white/20 transition-colors"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Keluar</span>
-                </button>
-              </div>
-            </div>
-          </header>
-
-          <div className="flex-1 flex items-center justify-center p-4 max-w-md mx-auto w-full">
-            {currentStudentData && (
-              <div className="w-full bg-white rounded-3xl p-6 sm:p-7 shadow-xl shadow-sky-900/5 border border-sky-100 space-y-5">
-                <div className="text-center space-y-1">
-                  <div className="w-14 h-14 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-black text-xl mx-auto shadow-md shadow-sky-200">
-                    #{currentStudentData.deskNumber}
-                  </div>
-                  <h3 className="text-lg font-black text-slate-900 pt-1">
-                    {currentStudentData.name}
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    Meja #{currentStudentData.deskNumber} · {config.topic}
-                  </p>
-                </div>
-
-                {activeSpeaker?.studentId === currentStudentData.id ? (
-                  <div className="p-4 rounded-2xl bg-sky-600 text-white text-center space-y-1 shadow-md shadow-sky-200 animate-pulse">
-                    <span className="text-xs font-bold uppercase tracking-wider text-sky-100 flex items-center justify-center gap-1">
-                      <Mic className="w-3.5 h-3.5" /> Giliran Anda Berbicara
-                    </span>
-                    <div className="text-4xl font-black font-mono">
-                      {activeSpeaker.remainingSeconds}s
-                    </div>
-                  </div>
-                ) : activeSpeaker ? (
-                  <div className="p-3 rounded-2xl bg-sky-50/70 border border-sky-100 text-center text-xs text-slate-600">
-                    <span>Sedang berbicara di kelas: </span>
-                    <strong className="text-sky-900">{activeSpeaker.studentName}</strong> (
-                    {activeSpeaker.remainingSeconds}s)
-                  </div>
-                ) : null}
-
-                <div className="p-4 rounded-2xl bg-sky-50/60 border border-sky-100 space-y-2.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-600">Sisa Kuota Bicara:</span>
-                    <span className="font-extrabold text-sky-700 text-sm">
-                      {currentStudentData.remainingTokens} dari {currentStudentData.tokensQuota} Token
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {Array.from({ length: currentStudentData.tokensQuota }).map((_, idx) => (
-                      <div
-                        key={idx}
-                        className={cn(
-                          "h-2.5 flex-1 rounded-full transition-colors",
-                          idx < currentStudentData.remainingTokens
-                            ? "bg-sky-600"
-                            : "bg-sky-100"
-                        )}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  disabled={
-                    currentStudentData.remainingTokens === 0 ||
-                    Boolean(activeSpeaker && activeSpeaker.studentId !== currentStudentData.id)
-                  }
-                  onClick={() => handleOpenTokenModal(currentStudentData)}
-                  className={cn(
-                    "w-full py-3 px-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-95",
-                    currentStudentData.remainingTokens > 0
-                      ? "bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 text-white shadow-sky-600/20"
-                      : "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
-                  )}
-                >
-                  <Flame className="w-4 h-4" />
-                  <span>
-                    {currentStudentData.remainingTokens > 0
-                      ? "Klaim Kartu Bicara"
-                      : "Semua Kuota Telah Digunakan"}
-                  </span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        currentStudentData ? (
+          <StudentDashboardView
+            student={currentStudentData}
+            activeSpeaker={activeSpeaker}
+            allClassTokens={allClassTokensUnfiltered}
+            classStats={classStats}
+            config={config}
+            onLogout={handleLogout}
+          />
+        ) : null
       )}
 
       {/* Modal Tambah Kelas Baru */}
@@ -1201,7 +1130,7 @@ export default function Home() {
         isOpen={Boolean(studentToDelete)}
         variant="danger"
         title={`Hapus Siswa "${studentToDelete?.name}"?`}
-        message={`Siswa nomor meja #${studentToDelete?.deskNumber} akan dihapus dari ${currentClass?.name}.`}
+        message={`Siswa #${studentToDelete?.deskNumber} (${studentToDelete?.name}) akan dihapus dari ${currentClass?.name}.`}
         note="Data riwayat token bicara siswa ini pada kelas ini juga akan dihapus."
         confirmText="Ya, Hapus Siswa"
         cancelText="Batal"
