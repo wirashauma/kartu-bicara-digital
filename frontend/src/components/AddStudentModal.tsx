@@ -48,7 +48,7 @@ export function AddStudentModal({
       return;
     }
     if (!deskNumber || Number(deskNumber) < 1) {
-      setErrorMessage("Nomor meja / nomor absen harus valid.");
+      setErrorMessage("Nomor urut / absen siswa harus valid.");
       return;
     }
 
@@ -112,7 +112,7 @@ export function AddStudentModal({
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-700 block flex items-center gap-1">
                 <Hash className="w-3.5 h-3.5 text-sky-600" />
-                <span>Nomor Meja / Absen</span>
+                <span>Nomor Urut / Absen</span>
               </label>
               <input
                 type="number"
