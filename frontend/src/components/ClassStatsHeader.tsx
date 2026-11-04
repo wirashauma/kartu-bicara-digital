@@ -138,10 +138,6 @@ export function ClassStatsHeader({
                     <span className="hidden md:inline">Daftar Kelas</span>
                   </button>
                 )}
-
-                <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/15 border border-white/20 text-xs font-bold text-white shrink-0">
-                  <span className="truncate max-w-[130px]">{currentClass.name}</span>
-                </div>
               </div>
             ) : (
               <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 border border-white/20 text-xs font-bold text-white shrink-0">
