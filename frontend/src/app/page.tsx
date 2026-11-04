@@ -60,6 +60,7 @@ import { FaqModal } from "@/components/FaqModal";
 import { ClassListView } from "@/components/ClassListView";
 import { AddClassModal } from "@/components/AddClassModal";
 import { AddStudentModal } from "@/components/AddStudentModal";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
@@ -96,10 +97,16 @@ export default function Home() {
   // 3. Tab Aktif untuk Pendidik
   const [activeTeacherTab, setActiveTeacherTab] = useState<TeacherTab>("DISCUSSION");
 
-  // 4. Modal Profil & FAQ
+  // 4. Modal Profil, FAQ & Konfirmasi Aksi Krusial
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isFaqOpen, setIsFaqOpen] = useState(false);
   const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
+
+  // Modal Konfirmasi Dialog Profesional
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [isNoSpeakerAlertOpen, setIsNoSpeakerAlertOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
 
   // 5. Kelas Aktif Terpilih
   const currentClass = useMemo(() => {
@@ -200,8 +207,13 @@ export default function Home() {
   }, [userRole, selectedClassId, classes, currentUser]);
 
   const handleLogout = () => {
+    setIsLogoutConfirmOpen(true);
+  };
+
+  const executeLogout = () => {
     clearStoredUser();
     setCurrentUser(null);
+    setIsLogoutConfirmOpen(false);
     router.push("/login");
   };
 
@@ -280,6 +292,15 @@ export default function Home() {
     if (selectedClassId === classId) {
       setSelectedClassId(null);
     }
+  };
+
+  // Handler: Hapus Siswa dari Kelas Aktif
+  const executeDeleteStudent = () => {
+    if (!studentToDelete) return;
+    setStudentsForCurrentClass((prev) =>
+      prev.filter((s) => s.id !== studentToDelete.id)
+    );
+    setStudentToDelete(null);
   };
 
   // Data siswa saat ini (jika peran adalah SISWA)
@@ -478,12 +499,15 @@ export default function Home() {
 
   // Reset Sesi Kelas Ini
   const handleResetSession = () => {
-    if (confirm("Reset seluruh data sesi dan riwayat token kelas ini kembali ke awal?")) {
-      setActiveSpeaker(null);
-      setStudentsForCurrentClass(() => generateInitialStudents());
-      setSettingsSavedMessage("Sesi kelas telah direset ke kondisi awal.");
-      setTimeout(() => setSettingsSavedMessage(""), 3000);
-    }
+    setIsResetConfirmOpen(true);
+  };
+
+  const executeResetSession = () => {
+    setActiveSpeaker(null);
+    setStudentsForCurrentClass(() => generateInitialStudents());
+    setIsResetConfirmOpen(false);
+    setSettingsSavedMessage("Sesi kelas telah direset ke kondisi awal.");
+    setTimeout(() => setSettingsSavedMessage(""), 3000);
   };
 
   return (
@@ -510,7 +534,7 @@ export default function Home() {
               if (activeSpeaker) {
                 setForceFullscreenOverlay(true);
               } else {
-                alert("Pilih siswa yang sedang berbicara untuk membuka mode layar penuh.");
+                setIsNoSpeakerAlertOpen(true);
               }
             }}
           />
@@ -668,6 +692,7 @@ export default function Home() {
                     <StudentGrid
                       students={students}
                       onSelectStudent={handleOpenTokenModal}
+                      onDeleteStudent={(s) => setStudentToDelete(s)}
                       activeSpeakerStudentId={activeSpeaker?.studentId}
                     />
                   ) : (
@@ -1140,6 +1165,56 @@ export default function Home() {
 
       {/* Modal FAQ & Panduan Kartu Bicara Digital */}
       <FaqModal isOpen={isFaqOpen} onClose={() => setIsFaqOpen(false)} />
+
+      {/* Modal Konfirmasi: Keluar dari Akun */}
+      <ConfirmModal
+        isOpen={isLogoutConfirmOpen}
+        variant="warning"
+        title="Keluar dari Akun?"
+        message="Sesi login Anda akan diakhiri dan Anda perlu masuk kembali untuk mengakses ruang diskusi kelas."
+        confirmText="Ya, Keluar Akun"
+        cancelText="Batal"
+        onConfirm={executeLogout}
+        onCancel={() => setIsLogoutConfirmOpen(false)}
+      />
+
+      {/* Modal Konfirmasi: Reset Sesi Kelas */}
+      <ConfirmModal
+        isOpen={isResetConfirmOpen}
+        variant="danger"
+        title="Reset Sesi Kelas Ini?"
+        message={`Seluruh jatah keping token dan riwayat bicara siswa pada "${currentClass?.name}" akan dikembalikan ke kondisi awal.`}
+        note="Tindakan ini akan mengosongkan log pembicara yang sudah tercatat pada sesi kelas ini."
+        confirmText="Ya, Reset Sesi"
+        cancelText="Batal"
+        onConfirm={executeResetSession}
+        onCancel={() => setIsResetConfirmOpen(false)}
+      />
+
+      {/* Modal Informasi: Belum Ada Pembicara Aktif */}
+      <ConfirmModal
+        isOpen={isNoSpeakerAlertOpen}
+        variant="info"
+        title="Belum Ada Siswa yang Berbicara"
+        message="Silakan pilih salah satu kartu siswa dan berikan token bicara terlebih dahulu untuk menampilkan timer proyektor layar penuh."
+        confirmText="Mengerti"
+        showCancel={false}
+        onConfirm={() => setIsNoSpeakerAlertOpen(false)}
+        onCancel={() => setIsNoSpeakerAlertOpen(false)}
+      />
+
+      {/* Modal Konfirmasi: Hapus Siswa dari Kelas */}
+      <ConfirmModal
+        isOpen={Boolean(studentToDelete)}
+        variant="danger"
+        title={`Hapus Siswa "${studentToDelete?.name}"?`}
+        message={`Siswa nomor meja #${studentToDelete?.deskNumber} akan dihapus dari ${currentClass?.name}.`}
+        note="Data riwayat token bicara siswa ini pada kelas ini juga akan dihapus."
+        confirmText="Ya, Hapus Siswa"
+        cancelText="Batal"
+        onConfirm={executeDeleteStudent}
+        onCancel={() => setStudentToDelete(null)}
+      />
     </main>
   );
 }
