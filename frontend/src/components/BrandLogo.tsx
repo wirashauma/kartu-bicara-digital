@@ -1,48 +1,54 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
+import Image from "next/image";
 
 interface BrandLogoProps {
   className?: string;
   size?: number;
   showText?: boolean;
+  priority?: boolean;
 }
 
-export function BrandLogo({ className = "", size = 32, showText = false }: BrandLogoProps) {
+export function BrandLogo({
+  className = "",
+  size = 36,
+  showText = false,
+  priority = true,
+}: BrandLogoProps) {
+  const [imageError, setImageError] = useState(false);
+
   return (
     <div className={`inline-flex items-center gap-2.5 ${className}`}>
-      {/* Geometric Crown / Crest Icon in Modern Light Blue Gradient */}
+      {/* Container Logo Resmi KBD */}
       <div
         style={{ width: size, height: size }}
-        className="relative shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 shadow-md shadow-sky-500/25 ring-1 ring-sky-300/40"
+        className="relative shrink-0 flex items-center justify-center rounded-2xl bg-white shadow-md shadow-sky-500/15 ring-1 ring-sky-200/60 overflow-hidden p-0.5"
       >
-        <svg
-          viewBox="0 0 32 32"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-3/5 h-3/5 text-white"
-        >
-          {/* Geometric Crown & Discussion Wings */}
-          <path
-            d="M 16 5 L 21 12 L 28 8 L 25 18 L 16 23 L 7 18 L 4 8 L 11 12 Z"
-            fill="currentColor"
+        {!imageError ? (
+          <Image
+            src="/logo.jpeg"
+            alt="Logo Kartu Bicara Digital"
+            width={Math.max(64, size * 2)}
+            height={Math.max(64, size * 2)}
+            className="w-full h-full object-contain rounded-xl select-none"
+            priority={priority}
+            onError={() => setImageError(true)}
           />
-          {/* Base Anchor / Digital Card Foundation */}
-          <path
-            d="M 10 23 L 16 27 L 22 23 L 22 26 L 16 30 L 10 26 Z"
-            fill="currentColor"
-            opacity="0.85"
-          />
-          {/* Core Spark Node */}
-          <circle cx="16" cy="15" r="2.2" fill="#fde047" />
-        </svg>
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xs select-none">
+            KBD
+          </div>
+        )}
       </div>
 
       {showText && (
         <div className="flex flex-col">
           <span className="font-extrabold text-slate-900 tracking-tight text-sm leading-tight">
-            Kartu Bicara
+            Kartu Bicara Digital
           </span>
           <span className="text-[9px] uppercase font-bold text-sky-600 tracking-wider">
-            Platform Digital
+            Model Arends
           </span>
         </div>
       )}

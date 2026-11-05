@@ -16,6 +16,18 @@ export const metadata: Metadata = {
   title: "Kartu Bicara Digital - Model Pembelajaran Arends",
   description:
     "Aplikasi kartu bicara interaktif berbasis web untuk diskusi kelas yang adil, setara, dan energik sesuai model pembelajaran kooperatif Time Token Arends.",
+  icons: {
+    icon: [
+      { url: "/logo.jpeg", type: "image/jpeg" },
+      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    shortcut: "/logo.jpeg",
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/logo.jpeg" },
+    ],
+  },
 };
 
 export default function RootLayout({

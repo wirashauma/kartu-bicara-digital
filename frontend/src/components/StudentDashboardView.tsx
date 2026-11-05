@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Image from "next/image";
 import {
   Student,
   Token,
@@ -106,8 +107,15 @@ export function StudentDashboardView({
           <div className="flex items-center justify-between gap-3 h-16 sm:h-18">
             {/* Sisi Kiri: Brand & Konteks Kelas Siswa */}
             <div className="flex items-center gap-3 shrink-0">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white text-sky-700 flex items-center justify-center font-black text-xs sm:text-sm tracking-tight shadow-md">
-                KBD
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white p-0.5 shadow-md ring-1 ring-white/60 overflow-hidden flex items-center justify-center shrink-0">
+                <Image
+                  src="/logo.jpeg"
+                  alt="Logo Kartu Bicara Digital"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-contain rounded-xl select-none"
+                  priority
+                />
               </div>
               <div className="leading-tight">
                 <h1 className="text-sm sm:text-base font-black text-white flex items-center gap-1.5">

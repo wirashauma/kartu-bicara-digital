@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -229,8 +230,15 @@ export default function FaqPage() {
             <div className="h-5 w-px bg-white/20 hidden sm:block" />
 
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-white text-sky-700 flex items-center justify-center font-black text-xs shadow-sm">
-                KBD
+              <div className="relative w-8 h-8 rounded-xl bg-white p-0.5 shadow-sm overflow-hidden flex items-center justify-center shrink-0">
+                <Image
+                  src="/logo.jpeg"
+                  alt="Logo Kartu Bicara Digital"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-contain rounded-lg select-none"
+                  priority
+                />
               </div>
               <span className="text-sm font-black text-white tracking-tight hidden sm:inline">
                 Pusat Bantuan & FAQ

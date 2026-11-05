@@ -164,7 +164,7 @@ export default function LoginPage() {
             {/* Logo Brand KBD */}
             <div className="mb-3">
               <div className="inline-block">
-                <BrandLogo size={32} showText={false} />
+                <BrandLogo size={44} showText={false} />
               </div>
             </div>
 

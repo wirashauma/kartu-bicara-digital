@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   MessageSquare,
   BarChart3,
@@ -125,8 +126,15 @@ export function ClassStatsHeader({
               className="flex items-center gap-2 group shrink-0"
               title="Beranda / Daftar Kelas"
             >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white text-sky-700 flex items-center justify-center font-black text-xs sm:text-sm tracking-tight shadow-md group-hover:scale-105 transition-transform">
-                KBD
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white p-0.5 shadow-md ring-1 ring-white/60 group-hover:scale-105 transition-transform overflow-hidden flex items-center justify-center shrink-0">
+                <Image
+                  src="/logo.jpeg"
+                  alt="Logo Kartu Bicara Digital"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-contain rounded-xl select-none"
+                  priority
+                />
               </div>
               <div className="hidden sm:block leading-tight">
                 <span className="text-sm font-black text-white block tracking-tight">

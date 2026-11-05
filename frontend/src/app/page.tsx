@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Play,
@@ -848,8 +849,15 @@ export default function Home() {
     return (
       <main className="min-h-screen bg-gradient-to-br from-sky-50/70 via-slate-50 to-blue-50/50 flex flex-col items-center justify-center font-sans">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-black text-sm shadow-md animate-pulse">
-            KBD
+          <div className="relative w-12 h-12 rounded-2xl bg-white p-1 shadow-md ring-1 ring-sky-200/50 flex items-center justify-center overflow-hidden animate-pulse">
+            <Image
+              src="/logo.jpeg"
+              alt="Logo Kartu Bicara Digital"
+              width={48}
+              height={48}
+              className="w-full h-full object-contain rounded-xl select-none"
+              priority
+            />
           </div>
           <p className="text-xs font-semibold text-slate-500">
             Memeriksa sesi login...
