@@ -1,0 +1,13 @@
+{
+  "name": "kartu-bicara-digital",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "npm --prefix backend run typecheck && npm --prefix frontend run typecheck",
+    "typecheck:backend": "npm --prefix backend run typecheck",
+    "typecheck:frontend": "npm --prefix frontend run typecheck",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build"
+  }
+}
+
