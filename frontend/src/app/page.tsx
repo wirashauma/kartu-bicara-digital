@@ -280,7 +280,7 @@ export default function Home() {
       localStorage.removeItem("kbd_active_teacher_tab_v1");
     } catch {}
     setIsLogoutConfirmOpen(false);
-    router.push("/login");
+    router.replace("/login");
   };
 
   const handleProfileUpdated = (updatedUser: AuthUser) => {

@@ -129,8 +129,8 @@ export default function RegisterPage() {
       setStoredUser(newUser);
       setSuccessMessage("Akun berhasil dibuat! Mengalihkan...");
       setTimeout(() => {
-        router.push("/");
-      }, 400);
+        router.replace("/");
+      }, 300);
     }, 450);
   };
 
@@ -149,9 +149,9 @@ export default function RegisterPage() {
           <div className="max-w-[370px] w-full mx-auto">
             {/* Logo Brand KBD */}
             <div className="mb-3">
-              <Link href="/" className="inline-block hover:opacity-90 transition-opacity">
+              <div className="inline-block">
                 <BrandLogo size={32} showText={false} />
-              </Link>
+              </div>
             </div>
 
             {/* Judul & Subjudul dalam Bahasa Indonesia yang Lega & Nyaman */}

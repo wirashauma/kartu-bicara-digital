@@ -161,7 +161,7 @@ export default function FaqPage() {
 
   const handleLogout = () => {
     clearStoredUser();
-    router.push("/login");
+    router.replace("/login");
   };
 
   const initials = user?.name

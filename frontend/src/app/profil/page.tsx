@@ -168,7 +168,7 @@ export default function ProfilePage() {
   // Logout
   const handleLogout = () => {
     clearStoredUser();
-    router.push("/login");
+    router.replace("/login");
   };
 
   if (!isLoaded) {

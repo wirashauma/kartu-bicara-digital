@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -15,13 +15,21 @@ import {
   X,
 } from "lucide-react";
 import { Role } from "@/types/session";
-import { setStoredUser, DEMO_TEACHER, DEMO_STUDENT, AuthUser } from "@/lib/auth";
+import { setStoredUser, getStoredUser, DEMO_TEACHER, DEMO_STUDENT, AuthUser } from "@/lib/auth";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GoogleIcon } from "@/components/GoogleIcon";
 import { AuthIllustration } from "@/components/AuthIllustration";
 
 export default function LoginPage() {
   const router = useRouter();
+
+  // Jika sudah terotentikasi, langsung bawa ke dashboard
+  useEffect(() => {
+    const user = getStoredUser();
+    if (user) {
+      router.replace("/");
+    }
+  }, [router]);
 
   // Peran: Guru vs Siswa
   const [role, setRole] = useState<Role>("TEACHER");
@@ -46,8 +54,8 @@ export default function LoginPage() {
     setStoredUser(user);
     setSuccessMessage(`Berhasil masuk sebagai ${user.name}`);
     setTimeout(() => {
-      router.push("/");
-    }, 350);
+      router.replace("/");
+    }, 200);
   };
 
   // Masuk dengan Google
@@ -77,9 +85,9 @@ export default function LoginPage() {
       setStoredUser(user);
       setSuccessMessage("Berhasil masuk dengan akun Google!");
       setTimeout(() => {
-        router.push("/");
-      }, 350);
-    }, 500);
+        router.replace("/");
+      }, 200);
+    }, 400);
   };
 
   // Kirim Formulir Masuk (Berlaku untuk Guru & Siswa via Email & Sandi)
@@ -113,8 +121,11 @@ export default function LoginPage() {
               className: "Kelas XI MIPA 1",
             };
       setStoredUser(user);
-      router.push("/");
-    }, 350);
+      setSuccessMessage("Berhasil masuk!");
+      setTimeout(() => {
+        router.replace("/");
+      }, 200);
+    }, 300);
   };
 
   const handleForgotPasswordSubmit = (e: React.FormEvent) => {
@@ -144,9 +155,9 @@ export default function LoginPage() {
           <div className="max-w-[370px] w-full mx-auto">
             {/* Logo Brand KBD */}
             <div className="mb-3">
-              <Link href="/" className="inline-block hover:opacity-90 transition-opacity">
+              <div className="inline-block">
                 <BrandLogo size={32} showText={false} />
-              </Link>
+              </div>
             </div>
 
             {/* Judul & Subjudul dalam Bahasa Indonesia yang Lega */}
