@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Play,
@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   UserPlus,
   FileSpreadsheet,
+  CheckCircle2,
 } from "lucide-react";
 import {
   ActiveSpeaker,
@@ -238,7 +239,21 @@ export default function Home() {
             );
 
           if (Array.isArray(parsed) && parsed.length > 0 && !hasOldDummy) {
-            setClasses(parsed);
+            // Sanitasi: jika ada kelas buatan baru yang sebelumnya terisi duplikat dummy Abdul Arif dkk, kosongkan
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const sanitized = parsed.map((c: any) => {
+              if (
+                c.id !== "class-xe3" &&
+                c.id !== "class-xe5" &&
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                c.students?.some((s: any) => s.name === "Abdul Arif" || s.id?.includes("custom-1"))
+              ) {
+                return { ...c, students: [] };
+              }
+              return c;
+            });
+            setClasses(sanitized);
+            localStorage.setItem("kbd_classrooms_v1", JSON.stringify(sanitized));
           } else {
             // Migrasi otomatis ke data seed bersih (Kelas X.E3 & Kelas X.E5)
             const seedClasses = generateInitialClassrooms();
@@ -255,6 +270,18 @@ export default function Home() {
             }
           }).catch(() => {});
         }
+
+        // Sinkronisasi background dengan server backend
+        fetchClassesApi().then((apiClasses) => {
+          if (apiClasses && apiClasses.length > 0) {
+            setClasses((prev) => {
+              // Pertahankan kelas lokal jika belum sempat tersinkronisasi
+              const backendIds = new Set(apiClasses.map((c) => c.id));
+              const localOnly = prev.filter((c) => !backendIds.has(c.id));
+              return [...apiClasses, ...localOnly];
+            });
+          }
+        }).catch(() => {});
       } catch (e) {
         console.error("Gagal memuat kbd_classrooms_v1", e);
       }
@@ -356,16 +383,27 @@ export default function Home() {
       speechTimeLimitSeconds: newClassData.speechTimeLimitSeconds,
     });
 
-    const newClass: ClassRoom = apiClass || {
-      ...newClassData,
-      id: `class-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      students: [],
-    };
+    const newClass: ClassRoom = apiClass
+      ? { ...apiClass, students: [] }
+      : {
+          ...newClassData,
+          id: `class-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          students: [],
+        };
 
-    setClasses((prev) => [newClass, ...prev]);
-    setSelectedClassId(newClass.id);
+    // Pastikan kelas baru selalu dimulai dalam kondisi kosong (0 siswa)
+    newClass.students = [];
+
+    setClasses((prev) => [newClass, ...prev.filter((c) => c.id !== newClass.id)]);
+
+    // Tetap di halaman daftar kelas (jangan langsung masuk sesuai permintaan pengguna)
+    setSelectedClassId(null);
     setIsAddClassOpen(false);
+    setSettingsSavedMessage(
+      `Kelas "${newClass.name}" berhasil dibuat dan ditambahkan ke daftar! Silakan pilih kelas untuk memulai sesi.`
+    );
+    setTimeout(() => setSettingsSavedMessage(""), 5000);
   };
 
   // Handler: Tambah Siswa Baru ke Kelas Aktif
@@ -469,38 +507,72 @@ export default function Home() {
     return list;
   }, [students]);
 
-  // Timer Interval: Hitung Mundur Pembicara Aktif
+  // Ref untuk pencatatan waktu bicara presisi tinggi (Drift-Free & Real Timestamp)
+  const speakerTimingRef = useRef<{
+    activeSessionStart: number;
+    accumulatedMs: number;
+    isPaused: boolean;
+    allocatedSeconds: number;
+    lastTickWarningSec: number | null;
+  }>({
+    activeSessionStart: 0,
+    accumulatedMs: 0,
+    isPaused: false,
+    allocatedSeconds: 0,
+    lastTickWarningSec: null,
+  });
+
+  // Timer Interval: Hitung Mundur Pembicara Aktif Presisi Berbasis Timestamp
+  const isSpeakerActive = !!activeSpeaker && !activeSpeaker.isPaused;
+  const warningThreshold = config.autoWarningThresholdSeconds;
+
   useEffect(() => {
-    if (!activeSpeaker || activeSpeaker.isPaused) return;
+    if (!isSpeakerActive) return;
 
     const timer = setInterval(() => {
-      setActiveSpeaker((prev) => {
-        if (!prev) return null;
-        if (prev.remainingSeconds <= 1) {
+      const now = Date.now();
+      const currentSessionMs = speakerTimingRef.current.isPaused
+        ? 0
+        : now - speakerTimingRef.current.activeSessionStart;
+      const totalElapsedMs = speakerTimingRef.current.accumulatedMs + currentSessionMs;
+      const totalElapsedSec = Math.floor(totalElapsedMs / 1000);
+      const allocated = speakerTimingRef.current.allocatedSeconds;
+      const remaining = Math.max(0, allocated - totalElapsedSec);
+
+      if (remaining <= 0) {
+        if (speakerTimingRef.current.lastTickWarningSec !== 0) {
           playFinalBuzzer();
+          speakerTimingRef.current.lastTickWarningSec = 0;
+        }
+        setActiveSpeaker((prev) => {
+          if (!prev) return null;
           return {
             ...prev,
             remainingSeconds: 0,
             isPaused: true,
           };
-        }
-        if (prev.remainingSeconds <= config.autoWarningThresholdSeconds + 1) {
+        });
+      } else {
+        if (
+          remaining <= warningThreshold &&
+          speakerTimingRef.current.lastTickWarningSec !== remaining
+        ) {
           playTickWarning();
+          speakerTimingRef.current.lastTickWarningSec = remaining;
         }
-        return {
-          ...prev,
-          remainingSeconds: prev.remainingSeconds - 1,
-        };
-      });
-    }, 1000);
+        setActiveSpeaker((prev) => {
+          if (!prev) return null;
+          if (prev.remainingSeconds === remaining) return prev;
+          return {
+            ...prev,
+            remainingSeconds: remaining,
+          };
+        });
+      }
+    }, 250);
 
     return () => clearInterval(timer);
-  }, [
-    activeSpeaker,
-    config.autoWarningThresholdSeconds,
-    playTickWarning,
-    playFinalBuzzer,
-  ]);
+  }, [isSpeakerActive, warningThreshold, playFinalBuzzer, playTickWarning]);
 
   // Buka Modal Pemilihan Kategori Token
   const handleOpenTokenModal = useCallback((student: Student) => {
@@ -517,12 +589,21 @@ export default function Home() {
       playSuccessChime();
       setIsModalOpen(false);
 
+      const now = Date.now();
+      speakerTimingRef.current = {
+        activeSessionStart: now,
+        accumulatedMs: 0,
+        isPaused: false,
+        allocatedSeconds: durationSeconds,
+        lastTickWarningSec: null,
+      };
+
       const speakerData: ActiveSpeaker = {
         studentId: selectedStudentForModal.id,
         studentName: selectedStudentForModal.name,
         deskNumber: selectedStudentForModal.deskNumber,
         tokenType,
-        startedAt: Date.now(),
+        startedAt: now,
         allocatedSeconds: durationSeconds,
         remainingSeconds: durationSeconds,
         isPaused: false,
@@ -556,8 +637,16 @@ export default function Home() {
 
     playSuccessChime();
 
-    const usedDuration =
-      activeSpeaker.allocatedSeconds - activeSpeaker.remainingSeconds;
+    // Hitung durasi waktu bicara riil berbasis timestamp aktual
+    const now = Date.now();
+    const currentSessionMs = speakerTimingRef.current.isPaused
+      ? 0
+      : now - speakerTimingRef.current.activeSessionStart;
+    const totalElapsedMs = speakerTimingRef.current.accumulatedMs + currentSessionMs;
+    const realElapsedSeconds = Math.round(totalElapsedMs / 1000);
+
+    // Durasi bicara aktual yang presisi (minimal 1 detik)
+    const exactDuration = Math.max(1, realElapsedSeconds);
 
     const newToken: Token = {
       id: `tok-${Date.now()}`,
@@ -566,7 +655,7 @@ export default function Home() {
       studentName: activeSpeaker.studentName,
       deskNumber: activeSpeaker.deskNumber,
       usedAt: new Date().toISOString(),
-      durationSeconds: Math.max(5, usedDuration),
+      durationSeconds: exactDuration,
     };
 
     setStudentsForCurrentClass((prev) =>
@@ -591,9 +680,9 @@ export default function Home() {
     setActiveSpeaker(null);
     setForceFullscreenOverlay(false);
 
-    // Sinkronisasi backend Express API
+    // Sinkronisasi durasi presisi ke Express API & PostgreSQL Supabase
     if (classIdToSync) {
-      finishSpeakerApi(classIdToSync).catch((err) =>
+      finishSpeakerApi(classIdToSync, exactDuration).catch((err) =>
         console.warn("API finishSpeaker sync skipped:", err)
       );
     }
@@ -602,9 +691,21 @@ export default function Home() {
   // Jeda / Lanjutkan Timer
   const handleTogglePause = useCallback(() => {
     playClick();
+    const now = Date.now();
     setActiveSpeaker((prev) => {
       if (!prev) return null;
       const nextPaused = !prev.isPaused;
+
+      if (nextPaused) {
+        // Berpindah dari berjalan -> dijeda: akumulasikan waktu sesi berjalan
+        speakerTimingRef.current.accumulatedMs += now - speakerTimingRef.current.activeSessionStart;
+        speakerTimingRef.current.isPaused = true;
+      } else {
+        // Berpindah dari dijeda -> berjalan: catat waktu mulai sesi baru
+        speakerTimingRef.current.activeSessionStart = now;
+        speakerTimingRef.current.isPaused = false;
+      }
+
       if (selectedClassId) {
         if (nextPaused) {
           pauseSpeakerApi(selectedClassId).catch(() => {});
@@ -623,6 +724,12 @@ export default function Home() {
   const handleExtendTime = useCallback(
     (seconds: number = 15) => {
       playClick();
+      speakerTimingRef.current.allocatedSeconds += seconds;
+      if (speakerTimingRef.current.isPaused) {
+        speakerTimingRef.current.activeSessionStart = Date.now();
+        speakerTimingRef.current.isPaused = false;
+      }
+
       setActiveSpeaker((prev) => {
         if (!prev) return null;
         if (selectedClassId) {
@@ -642,33 +749,71 @@ export default function Home() {
   // Simpan Pengaturan
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    setConfig(settingsForm);
+    const newQuota = Math.max(1, Math.min(10, Number(settingsForm.tokensPerStudent) || 3));
+    const newTimeLimit = Math.max(10, Math.min(600, Number(settingsForm.speechTimeLimitSeconds) || 60));
+
+    const updatedConfig: SessionConfig = {
+      ...settingsForm,
+      tokensPerStudent: newQuota,
+      speechTimeLimitSeconds: newTimeLimit,
+    };
+    setConfig(updatedConfig);
+
     if (selectedClassId) {
+      // 1. Optimistic Update di Frontend: Seluruh siswa di kelas langsung disinkronkan kuota & sisa tokennya
       setClasses((prev) =>
         prev.map((c) => {
           if (c.id === selectedClassId) {
+            const updatedStudents = c.students.map((s) => {
+              const usedCount = Array.isArray(s.usedTokens)
+                ? s.usedTokens.length
+                : Math.max(0, (s.tokensQuota || newQuota) - s.remainingTokens);
+              const nextRemaining = Math.max(0, newQuota - usedCount);
+
+              return {
+                ...s,
+                tokensQuota: newQuota,
+                remainingTokens: nextRemaining,
+              };
+            });
+
             return {
               ...c,
               name: settingsForm.className,
               subject: settingsForm.subject,
               topic: settingsForm.topic,
-              tokensPerStudent: settingsForm.tokensPerStudent,
-              speechTimeLimitSeconds: settingsForm.speechTimeLimitSeconds,
+              tokensPerStudent: newQuota,
+              speechTimeLimitSeconds: newTimeLimit,
+              students: updatedStudents,
             };
           }
           return c;
         })
       );
-      await updateClassApi(selectedClassId, {
+
+      // 2. Kirim update ke Express Backend & PostgreSQL Supabase
+      const updatedApiClass = await updateClassApi(selectedClassId, {
         name: settingsForm.className,
         subject: settingsForm.subject,
         topic: settingsForm.topic,
-        tokensPerStudent: settingsForm.tokensPerStudent,
-        speechTimeLimitSeconds: settingsForm.speechTimeLimitSeconds,
-      }).catch(() => {});
+        tokensPerStudent: newQuota,
+        speechTimeLimitSeconds: newTimeLimit,
+      }).catch((err) => {
+        console.warn("updateClassApi error:", err);
+        return null;
+      });
+
+      // 3. Sinkronkan state dengan respons database jika tersedia
+      if (updatedApiClass && updatedApiClass.students) {
+        setClasses((prev) =>
+          prev.map((c) => (c.id === selectedClassId ? { ...c, ...updatedApiClass } : c))
+        );
+      }
     }
-    setSettingsSavedMessage("Pengaturan sesi berhasil diperbarui.");
-    setTimeout(() => setSettingsSavedMessage(""), 3000);
+    setSettingsSavedMessage(
+      "Pengaturan sesi berhasil diperbarui. Jatah kartu seluruh siswa telah disinkronkan secara otomatis."
+    );
+    setTimeout(() => setSettingsSavedMessage(""), 4000);
   };
 
   // Reset Sesi Kelas Ini
@@ -681,10 +826,12 @@ export default function Home() {
     if (selectedClassId) {
       await resetClassSessionApi(selectedClassId).catch(() => {});
     }
+    const quota = currentClass?.tokensPerStudent || 3;
     setStudentsForCurrentClass((prev) =>
       prev.map((s) => ({
         ...s,
-        remainingTokens: currentClass?.tokensPerStudent || 3,
+        tokensQuota: quota,
+        remainingTokens: quota,
         usedTokens: [],
         isCurrentlySpeaking: false,
         hasSpoken: false,
@@ -741,6 +888,12 @@ export default function Home() {
           {/* ================================================================ */}
           {!selectedClassId ? (
             <div className="flex-1 px-4 sm:px-6 py-6 max-w-7xl mx-auto w-full">
+              {settingsSavedMessage && (
+                <div className="mb-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-bold flex items-center gap-2.5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <span>{settingsSavedMessage}</span>
+                </div>
+              )}
               <ClassListView
                 classes={classes}
                 currentUser={currentUser}

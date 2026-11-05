@@ -75,7 +75,11 @@ export const extendSpeaker = (req: Request, res: Response) => {
 
 export const finishSpeaker = (req: Request, res: Response) => {
   const classId = String(req.params.classId);
-  const result = memoryStore.finishSpeaker(classId);
+  const { durationSeconds } = req.body || {};
+  const result = memoryStore.finishSpeaker(
+    classId,
+    durationSeconds !== undefined ? Number(durationSeconds) : undefined
+  );
 
   if (!result.student) {
     return res.status(404).json({ success: false, message: "Tidak ada sesi bicara aktif untuk diselesaikan" });

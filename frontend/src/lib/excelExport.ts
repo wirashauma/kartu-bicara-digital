@@ -165,7 +165,7 @@ export function exportClassDiscussionToExcel({
   // BARIS 6: HEADER TABEL DATA SISWA (r: 5)
   const headers = [
     "No",
-    "No. Meja",
+    "No. Absen",
     "Nama Siswa",
     "Status Keaktifan",
     "Token Terpakai",
@@ -178,7 +178,7 @@ export function exportClassDiscussionToExcel({
     setCell(5, cIdx, h, tableHeaderStyle);
   });
 
-  // Urutkan siswa berdasarkan nomor meja
+  // Urutkan siswa berdasarkan nomor absen
   const sortedStudents = [...students].sort((a, b) => a.deskNumber - b.deskNumber);
 
   // BARIS 7 dst: DATA SISWA
@@ -221,7 +221,7 @@ export function exportClassDiscussionToExcel({
     const rowBg = sIdx % 2 === 0 ? "FFFFFF" : "F8FAFC"; // Zebra striping
 
     setCell(rowIdx, 0, sIdx + 1, cellCenter(rowBg), "n");
-    setCell(rowIdx, 1, `Meja #${student.deskNumber}`, cellCenter(rowBg));
+    setCell(rowIdx, 1, student.deskNumber || sIdx + 1, cellCenter(rowBg), "n");
     setCell(rowIdx, 2, student.name, cellLeft(rowBg));
     setCell(
       rowIdx,
@@ -259,13 +259,13 @@ export function exportClassDiscussionToExcel({
     { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }, // Row 2: Model Arends
     { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }, // Row 3: Info Kelas
     { s: { r: 3, c: 0 }, e: { r: 3, c: 7 } }, // Row 4: Waktu & Statistik
-    { s: { r: rowIdx, c: 0 }, e: { r: rowIdx, c: 1 } }, // Row Total: Merge No & No Meja
+    { s: { r: rowIdx, c: 0 }, e: { r: rowIdx, c: 1 } }, // Row Total: Merge No & No. Absen
   ];
 
   // Lebar Kolom Proporsional (Anti-Terpotong)
   ws["!cols"] = [
     { wch: 6 }, // A: No
-    { wch: 12 }, // B: No. Meja
+    { wch: 12 }, // B: No. Absen
     { wch: 28 }, // C: Nama Siswa
     { wch: 18 }, // D: Status Keaktifan
     { wch: 16 }, // E: Token Terpakai
@@ -293,7 +293,7 @@ export function exportClassDiscussionToExcel({
     ["LOG KRONOLOGIS TRANSAKSI KARTU BICARA"],
     [`Kelas: ${className}   |   Topik: ${topic}   |   Total Transaksi: ${allUsedTokens.length} kali`],
     [],
-    ["No", "Waktu Transaksi", "Nama Siswa", "No. Meja", "Kategori Kartu", "Durasi Bicara (detik)", "Keterangan Taksonomi"],
+    ["No", "Waktu Transaksi", "Nama Siswa", "No. Absen", "Kategori Kartu", "Durasi Bicara (detik)", "Keterangan Taksonomi"],
   ];
 
   if (allUsedTokens.length > 0) {
@@ -303,7 +303,7 @@ export function exportClassDiscussionToExcel({
         idx + 1,
         new Date(tok.usedAt).toLocaleTimeString("id-ID") + " WIB",
         tok.studentName,
-        `Meja #${tok.deskNumber || "-"}`,
+        tok.deskNumber || "-",
         def?.label || tok.type,
         tok.durationSeconds,
         def?.description || "-",
@@ -322,7 +322,7 @@ export function exportClassDiscussionToExcel({
     { wch: 6 },
     { wch: 20 },
     { wch: 28 },
-    { wch: 12 },
+    { wch: 12 }, // No. Absen
     { wch: 20 },
     { wch: 22 },
     { wch: 50 },

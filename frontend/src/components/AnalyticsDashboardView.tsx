@@ -432,7 +432,7 @@ export function AnalyticsDashboardView({
                         {student.name}
                       </h4>
                       <span className="text-[11px] text-slate-400">
-                        Meja #{student.deskNumber} · Sisa {student.remainingTokens} token
+                        Absen #{student.deskNumber} · Sisa {student.remainingTokens} token
                       </span>
                     </div>
                   </div>
@@ -508,7 +508,7 @@ export function AnalyticsDashboardView({
                     </button>
                   ) : (
                     <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 shrink-0">
-                      Meja #{student.deskNumber}
+                      Absen #{student.deskNumber}
                     </span>
                   )}
                 </div>

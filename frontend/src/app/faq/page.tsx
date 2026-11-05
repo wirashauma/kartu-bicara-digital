@@ -93,9 +93,9 @@ const FAQ_DATA: FaqItem[] = [
     categoryLabel: "Manajemen Kelas",
     question: "Apakah guru dapat menambah kelas dan siswa baru secara mandiri?",
     answer:
-      "Tentu saja. Guru dapat membuat ruang kelas baru melalui tombol '+ Tambah Kelas', menentukan mata pelajaran, topik diskusi, dan jatah kuota kartu. Di dalam kelas tersebut, guru dapat menambahkan siswa satu per satu lengkap dengan nama dan nomor meja tempat duduk.",
+      "Tentu saja. Guru dapat membuat ruang kelas baru melalui tombol '+ Tambah Kelas', menentukan mata pelajaran, topik diskusi, dan jatah kuota kartu. Di dalam kelas tersebut, guru dapat menambahkan siswa satu per satu lengkap dengan nama dan nomor absen.",
     tips: "Setiap kelas memiliki kode sesi PIN acak 6 digit yang memudahkan identifikasi sesi pembelajaran.",
-    tags: ["tambah kelas", "tambah siswa", "kelas", "nomor meja", "pin", "sesi"],
+    tags: ["tambah kelas", "tambah siswa", "kelas", "nomor absen", "pin", "sesi"],
   },
   {
     id: "faq-7",
@@ -113,7 +113,7 @@ const FAQ_DATA: FaqItem[] = [
     categoryLabel: "Evaluasi & Statistik",
     question: "Bagaimana cara melihat log kronologis riwayat penggunaan kartu bicara?",
     answer:
-      "Guru dapat membuka tab 'Riwayat Token' pada navbar atas. Halaman tersebut mencatat secara terperinci setiap transaksi kartu bicara secara berurutan, meliputi nama siswa, nomor meja, jam tepat saat berbicara, jenis kategori kartu, serta durasi waktu yang dihabiskan.",
+      "Guru dapat membuka tab 'Riwayat Token' pada navbar atas. Halaman tersebut mencatat secara terperinci setiap transaksi kartu bicara secara berurutan, meliputi nama siswa, nomor absen, jam tepat saat berbicara, jenis kategori kartu, serta durasi waktu yang dihabiskan.",
     tips: "Log ini dapat dijadikan bukti autentik ketercapaian proses pembelajaran kooperatif di kelas.",
     tags: ["riwayat token", "timeline", "log", "kronologis", "transaksi"],
   },

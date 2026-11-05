@@ -149,16 +149,33 @@ class MemoryStore {
       name: data.name,
       subject: data.subject,
       topic: data.topic || "Diskusi Terbuka Model Arends",
-      grade: data.grade || "Kelas 11 SMA",
+      grade: data.grade || "Kelas 10 SMA",
       sessionPin,
       tokensPerStudent: data.tokensPerStudent || 3,
       speechTimeLimitSeconds: data.speechTimeLimitSeconds || 60,
-      students: generateInitialStudents(24, data.tokensPerStudent || 3),
+      students: [], // Kelas baru selalu dimulai dengan kondisi kosong (0 siswa)
       academicYear: "2024/2025 Genap",
       createdAt: new Date().toISOString(),
     };
 
     this.classrooms.unshift(newClass);
+
+    // Persist ke database PostgreSQL Supabase via Prisma
+    prisma.classRoom
+      .create({
+        data: {
+          id: newClass.id,
+          name: newClass.name,
+          subject: newClass.subject,
+          topic: newClass.topic,
+          grade: newClass.grade,
+          tokensPerStudent: newClass.tokensPerStudent,
+          speechTimeLimitSeconds: newClass.speechTimeLimitSeconds,
+          sessionPin: newClass.sessionPin,
+        },
+      })
+      .catch((err) => console.warn("Prisma createClassroom error:", err));
+
     return newClass;
   }
 
@@ -180,10 +197,59 @@ class MemoryStore {
     if (data.subject !== undefined) classroom.subject = data.subject;
     if (data.topic !== undefined) classroom.topic = data.topic;
     if (data.grade !== undefined) classroom.grade = data.grade;
-    if (data.tokensPerStudent !== undefined)
-      classroom.tokensPerStudent = data.tokensPerStudent;
     if (data.speechTimeLimitSeconds !== undefined)
       classroom.speechTimeLimitSeconds = data.speechTimeLimitSeconds;
+
+    if (data.tokensPerStudent !== undefined) {
+      const newQuota = Number(data.tokensPerStudent);
+      classroom.tokensPerStudent = newQuota;
+
+      // Update seluruh siswa di kelas ini secara sinkron:
+      // Hitung sisa token baru berdasarkan token yang sudah terpakai
+      classroom.students = classroom.students.map((student) => {
+        const usedCount = Array.isArray(student.usedTokens)
+          ? student.usedTokens.length
+          : Math.max(0, (student.tokensQuota || newQuota) - student.remainingTokens);
+
+        const nextRemaining = Math.max(0, newQuota - usedCount);
+
+        return {
+          ...student,
+          tokensQuota: newQuota,
+          remainingTokens: nextRemaining,
+        };
+      });
+
+      // Persist perbaruan quota & remainingTokens siswa ke PostgreSQL Supabase via Prisma
+      for (const student of classroom.students) {
+        prisma.student
+          .update({
+            where: { id: student.id },
+            data: {
+              tokensQuota: student.tokensQuota,
+              remainingTokens: student.remainingTokens,
+            },
+          })
+          .catch((err) =>
+            console.warn(`Prisma update student ${student.id} tokens error:`, err)
+          );
+      }
+    }
+
+    // Persist update ke database PostgreSQL Supabase via Prisma
+    prisma.classRoom
+      .update({
+        where: { id },
+        data: {
+          name: classroom.name,
+          subject: classroom.subject,
+          topic: classroom.topic,
+          grade: classroom.grade,
+          tokensPerStudent: classroom.tokensPerStudent,
+          speechTimeLimitSeconds: classroom.speechTimeLimitSeconds,
+        },
+      })
+      .catch((err) => console.warn("Prisma updateClassroom error:", err));
 
     return classroom;
   }
@@ -194,6 +260,12 @@ class MemoryStore {
 
     this.classrooms.splice(index, 1);
     this.activeSpeakers.delete(id);
+
+    // Persist delete ke database PostgreSQL Supabase via Prisma
+    prisma.classRoom
+      .delete({ where: { id } })
+      .catch((err) => console.warn("Prisma deleteClassroom error:", err));
+
     return true;
   }
 
@@ -214,6 +286,27 @@ class MemoryStore {
     }));
 
     this.activeSpeakers.delete(id);
+
+    // Persist reset siswa dan penghapusan token di Supabase PostgreSQL via Prisma
+    prisma.student
+      .updateMany({
+        where: { classRoomId: id },
+        data: {
+          remainingTokens: classroom.tokensPerStudent,
+          tokensQuota: classroom.tokensPerStudent,
+          hasSpoken: false,
+          isCurrentlySpeaking: false,
+          totalSpeakingTimeSeconds: 0,
+        },
+      })
+      .catch((err) => console.warn("Prisma reset students error:", err));
+
+    prisma.token
+      .deleteMany({
+        where: { classRoomId: id },
+      })
+      .catch((err) => console.warn("Prisma delete tokens error:", err));
+
     return classroom;
   }
 
@@ -331,7 +424,7 @@ class MemoryStore {
     return { speaker, isFinished: speaker.remainingSeconds === 0 };
   }
 
-  public finishSpeaker(classId: string): {
+  public finishSpeaker(classId: string, customDurationSeconds?: number): {
     student: Student | null;
     token: Token | null;
   } {
@@ -344,10 +437,14 @@ class MemoryStore {
     const student = classroom.students.find((s) => s.id === speaker.studentId);
     if (!student) return { student: null, token: null };
 
-    const usedDuration = Math.max(
-      5,
-      speaker.allocatedSeconds - speaker.remainingSeconds
-    );
+    // Gunakan durasi riil yang dikirim oleh client jika valid, atau hitung selisih timestamp nyata
+    let usedDuration: number;
+    if (typeof customDurationSeconds === "number" && !isNaN(customDurationSeconds) && customDurationSeconds > 0) {
+      usedDuration = Math.round(customDurationSeconds);
+    } else {
+      const realElapsed = Math.round((Date.now() - speaker.startedAt) / 1000);
+      usedDuration = Math.max(1, Math.min(speaker.allocatedSeconds, realElapsed));
+    }
 
     const newToken: Token = {
       id: `tok-${Date.now()}`,
@@ -367,6 +464,36 @@ class MemoryStore {
     student.lastSpokeAt = newToken.usedAt;
 
     this.activeSpeakers.delete(classId);
+
+    // Persist transaksi token & update keaktifan siswa ke Supabase PostgreSQL via Prisma
+    prisma.token
+      .create({
+        data: {
+          id: newToken.id,
+          type: newToken.type,
+          studentId: student.id,
+          studentName: student.name,
+          deskNumber: student.deskNumber,
+          durationSeconds: usedDuration,
+          usedAt: new Date(newToken.usedAt),
+          classRoomId: classroom.id,
+        },
+      })
+      .catch((err) => console.warn("Prisma token.create error:", err));
+
+    prisma.student
+      .update({
+        where: { id: student.id },
+        data: {
+          isCurrentlySpeaking: false,
+          hasSpoken: true,
+          remainingTokens: student.remainingTokens,
+          totalSpeakingTimeSeconds: student.totalSpeakingTimeSeconds,
+          lastSpokeAt: new Date(newToken.usedAt),
+        },
+      })
+      .catch((err) => console.warn("Prisma student.update error:", err));
+
     return { student, token: newToken };
   }
 

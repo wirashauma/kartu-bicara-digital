@@ -178,12 +178,14 @@ export async function extendSpeakerApi(
 }
 
 export async function finishSpeakerApi(
-  classId: string
+  classId: string,
+  durationSeconds?: number
 ): Promise<{ student: Student; token: Token } | null> {
   const res = await request<{ student: Student; token: Token }>(
     `/classes/${classId}/speaker/finish`,
     {
       method: "POST",
+      body: JSON.stringify({ durationSeconds }),
     }
   );
   return res.success && res.data ? res.data : null;
