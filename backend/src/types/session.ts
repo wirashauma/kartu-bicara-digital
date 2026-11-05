@@ -59,6 +59,13 @@ export interface User {
   email?: string;
   school?: string;
   subject?: string;
+  className?: string;
+}
+
+export interface UserAccount extends User {
+  password?: string;
+  emailWithDot?: string;
+  nisn?: string;
 }
 
 export interface Token {

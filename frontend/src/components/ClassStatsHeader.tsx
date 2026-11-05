@@ -16,6 +16,10 @@ import {
   ChevronDown,
   ArrowLeft,
   School,
+  Check,
+  Hash,
+  Copy,
+  Layers,
 } from "lucide-react";
 import { ClassRoom, ClassStats, SessionConfig, SessionStatus } from "@/types/session";
 import { AuthUser } from "@/lib/auth";
@@ -38,6 +42,8 @@ export interface ClassStatsHeaderProps {
   onToggleMute?: () => void;
   className?: string;
   currentClass?: ClassRoom | null;
+  classes?: ClassRoom[];
+  onSelectClass?: (classId: string) => void;
   onBackToClassList?: () => void;
 }
 
@@ -51,16 +57,24 @@ export function ClassStatsHeader({
   onToggleMute,
   className,
   currentClass,
+  classes = [],
+  onSelectClass,
   onBackToClassList,
 }: ClassStatsHeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isClassMenuOpen, setIsClassMenuOpen] = useState(false);
+  const [copiedPin, setCopiedPin] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const classMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
+      }
+      if (classMenuRef.current && !classMenuRef.current.contains(event.target as Node)) {
+        setIsClassMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -68,6 +82,15 @@ export function ClassStatsHeader({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const handleCopyCurrentPin = () => {
+    if (!currentClass) return;
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(currentClass.sessionPin);
+      setCopiedPin(true);
+      setTimeout(() => setCopiedPin(false), 2000);
+    }
+  };
 
   // 4 Tab Menu: Sesi Diskusi, Statistik & Evaluasi, Riwayat Token, Pengaturan
   const tabs: { id: TeacherTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -131,9 +154,83 @@ export function ClassStatsHeader({
                     title="Kembali ke Daftar Kelas"
                   >
                     <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                    <span className="hidden md:inline">Daftar Kelas</span>
+                    <span className="hidden lg:inline">Semua Kelas</span>
                   </button>
                 )}
+
+                {/* Quick Class Switcher Dropdown */}
+                {classes.length > 1 && onSelectClass && (
+                  <div className="relative" ref={classMenuRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsClassMenuOpen(!isClassMenuOpen)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-xs font-bold text-white transition-all"
+                      title="Ganti Kelas Cepat"
+                    >
+                      <Layers className="w-3.5 h-3.5 text-sky-200" />
+                      <span className="max-w-[90px] sm:max-w-[130px] truncate">{currentClass.name}</span>
+                      <ChevronDown
+                        className={cn("w-3 h-3 text-sky-200 transition-transform", isClassMenuOpen && "rotate-180")}
+                      />
+                    </button>
+
+                    {isClassMenuOpen && (
+                      <div className="absolute left-0 mt-2 w-52 rounded-2xl bg-white text-slate-800 shadow-xl border border-sky-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                        <div className="px-3.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                          Pilih Ruang Kelas
+                        </div>
+                        {classes.map((c) => {
+                          const isCurrent = c.id === currentClass.id;
+                          return (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => {
+                                onSelectClass(c.id);
+                                setIsClassMenuOpen(false);
+                              }}
+                              className={cn(
+                                "w-full px-3.5 py-2 text-left text-xs font-bold flex items-center justify-between transition-colors",
+                                isCurrent
+                                  ? "bg-sky-50 text-sky-700"
+                                  : "text-slate-700 hover:bg-slate-50"
+                              )}
+                            >
+                              <div className="leading-tight truncate">
+                                <span className="block truncate">{c.name}</span>
+                                <span className="text-[10px] font-normal text-slate-400 font-mono">
+                                  #{c.sessionPin} · {c.students.length} Siswa
+                                </span>
+                              </div>
+                              {isCurrent && <Check className="w-3.5 h-3.5 text-sky-600 shrink-0 ml-1" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Quick PIN Copy Badge */}
+                <button
+                  type="button"
+                  onClick={handleCopyCurrentPin}
+                  title="Salin PIN Sesi Kelas"
+                  className={cn(
+                    "hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-mono font-bold transition-all shadow-2xs",
+                    copiedPin
+                      ? "bg-emerald-400 text-slate-900 border-emerald-300"
+                      : "bg-black/15 text-white/90 border-white/15 hover:bg-white/20"
+                  )}
+                >
+                  <Hash className="w-3 h-3 text-sky-200" />
+                  <span>{currentClass.sessionPin}</span>
+                  {copiedPin ? (
+                    <Check className="w-3 h-3 text-slate-900" />
+                  ) : (
+                    <Copy className="w-3 h-3 text-white/60 hover:text-white" />
+                  )}
+                </button>
               </div>
             ) : (
               <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 border border-white/20 text-xs font-bold text-white shrink-0">

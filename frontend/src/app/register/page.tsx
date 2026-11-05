@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Role } from "@/types/session";
 import { setStoredUser, DEMO_TEACHER, DEMO_STUDENT, AuthUser } from "@/lib/auth";
+import { registerWithFirebase } from "@/lib/firebaseAuth";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GoogleIcon } from "@/components/GoogleIcon";
 import { AuthIllustration } from "@/components/AuthIllustration";
@@ -80,7 +81,7 @@ export default function RegisterPage() {
     }, 500);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
 
@@ -106,10 +107,7 @@ export default function RegisterPage() {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-
-      // Bentuk nama tampilan dari alamat email secara otomatis
+    try {
       const namePrefix = email.split("@")[0].replace(/[._]/g, " ");
       const formattedName = namePrefix
         ? namePrefix.replace(/\b\w/g, (c) => c.toUpperCase())
@@ -117,21 +115,29 @@ export default function RegisterPage() {
         ? "Guru Baru"
         : "Siswa Baru";
 
-      const newUser: AuthUser = {
-        id: `user-${Date.now()}`,
-        name: formattedName,
+      const res = await registerWithFirebase({
         email: email.trim(),
+        password,
         role,
+        name: formattedName,
+        className: role === "STUDENT" ? "Kelas X.E3" : undefined,
         school: "SMAN 1 Teladan",
-        className: role === "STUDENT" ? "Kelas XI MIPA 1" : undefined,
-      };
+      });
 
-      setStoredUser(newUser);
-      setSuccessMessage("Akun berhasil dibuat! Mengalihkan...");
-      setTimeout(() => {
-        router.replace("/");
-      }, 300);
-    }, 450);
+      setIsLoading(false);
+
+      if (res.success && res.user) {
+        setSuccessMessage("Akun berhasil didaftarkan di Firebase! Mengalihkan...");
+        setTimeout(() => {
+          router.replace("/");
+        }, 300);
+      } else {
+        setErrorMessage(res.message || "Gagal mendaftarkan akun.");
+      }
+    } catch {
+      setIsLoading(false);
+      setErrorMessage("Terjadi kesalahan sistem saat mendaftarkan akun.");
+    }
   };
 
   return (

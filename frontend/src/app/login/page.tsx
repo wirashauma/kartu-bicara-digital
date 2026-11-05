@@ -15,7 +15,15 @@ import {
   X,
 } from "lucide-react";
 import { Role } from "@/types/session";
-import { setStoredUser, getStoredUser, DEMO_TEACHER, DEMO_STUDENT, AuthUser } from "@/lib/auth";
+import {
+  setStoredUser,
+  getStoredUser,
+  DEMO_TEACHER,
+  DEMO_STUDENT,
+  AuthUser,
+  authenticateCredentials,
+} from "@/lib/auth";
+import { sendPasswordReset } from "@/lib/firebaseAuth";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GoogleIcon } from "@/components/GoogleIcon";
 import { AuthIllustration } from "@/components/AuthIllustration";
@@ -91,7 +99,7 @@ export default function LoginPage() {
   };
 
   // Kirim Formulir Masuk (Berlaku untuk Guru & Siswa via Email & Sandi)
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
     if (!email.trim() || !password.trim()) {
@@ -100,37 +108,32 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await authenticateCredentials(email, password, role);
       setIsLoading(false);
-      const user: AuthUser =
-        role === "TEACHER"
-          ? {
-              id: "teacher-1",
-              name: email.toLowerCase().includes("sri") ? DEMO_TEACHER.name : "Bapak/Ibu Guru",
-              email: email.trim(),
-              role: "TEACHER",
-              school: "SMAN 1 Teladan",
-              subject: "Sosiologi / Bahasa Indonesia",
-            }
-          : {
-              id: "student-1",
-              name: email.toLowerCase().includes("ananda") ? DEMO_STUDENT.name : "Ananda Rizky",
-              email: email.trim(),
-              role: "STUDENT",
-              school: "SMAN 1 Teladan",
-              className: "Kelas XI MIPA 1",
-            };
-      setStoredUser(user);
-      setSuccessMessage("Berhasil masuk!");
-      setTimeout(() => {
-        router.replace("/");
-      }, 200);
-    }, 300);
+      if (res.success && res.user) {
+        setStoredUser(res.user);
+        setSuccessMessage(`Berhasil masuk sebagai ${res.user.name}`);
+        setTimeout(() => {
+          router.replace("/");
+        }, 250);
+      } else {
+        setErrorMessage(res.message || "Email atau kata sandi tidak valid.");
+      }
+    } catch {
+      setIsLoading(false);
+      setErrorMessage("Terjadi kesalahan sistem saat mencoba masuk.");
+    }
   };
 
-  const handleForgotPasswordSubmit = (e: React.FormEvent) => {
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail) return;
+    try {
+      await sendPasswordReset(forgotEmail);
+    } catch {
+      // Ignored
+    }
     setForgotSuccess(true);
     setTimeout(() => {
       setIsForgotModalOpen(false);
@@ -232,7 +235,9 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={
-                      role === "TEACHER" ? "nama.guru@sekolah.sch.id" : "nama.siswa@sekolah.sch.id"
+                      role === "TEACHER"
+                        ? "guru@gmail.com atau sri.wahyuni@sekolah.sch.id"
+                        : "nama@gmail.com (cth: abdularif@gmail.com)"
                     }
                     required
                     className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 transition-all shadow-2xs"

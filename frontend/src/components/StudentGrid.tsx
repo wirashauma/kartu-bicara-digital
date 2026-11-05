@@ -77,6 +77,22 @@ export function StudentGrid({
     [students]
   );
 
+  const handlePickRandomIdle = () => {
+    const idleList = students.filter(
+      (s) => (!s.hasSpoken || s.usedTokens.length === 0) && s.remainingTokens > 0
+    );
+    if (idleList.length > 0) {
+      const chosen = idleList[Math.floor(Math.random() * idleList.length)];
+      onSelectStudent(chosen);
+    } else {
+      const activeList = students.filter((s) => s.remainingTokens > 0);
+      if (activeList.length > 0) {
+        const chosen = activeList[Math.floor(Math.random() * activeList.length)];
+        onSelectStudent(chosen);
+      }
+    }
+  };
+
   return (
     <section className={cn("w-full space-y-3.5", className)}>
       {/* Search & Filter: Bersih, Ramping, Tidak Berantakan */}
@@ -101,8 +117,18 @@ export function StudentGrid({
           )}
         </div>
 
-        {/* Tab Filter Chips */}
+        {/* Tab Filter Chips & Tombol Panggil Acak */}
         <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
+          <button
+            type="button"
+            onClick={handlePickRandomIdle}
+            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition-all whitespace-nowrap"
+            title="Pilih acak siswa yang belum berbicara (Model Arends)"
+          >
+            <Flame className="w-3.5 h-3.5" />
+            <span>Panggil Acak</span>
+          </button>
+
           <button
             onClick={() => setActiveTab("ALL")}
             className={cn(

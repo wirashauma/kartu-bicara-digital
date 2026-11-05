@@ -6,12 +6,20 @@ import {
   ActiveSpeaker,
   ClassStats,
   User,
+  UserAccount,
+  Role,
 } from "../types/session.js";
 import { generateInitialClassrooms, generateInitialStudents } from "./initialData.js";
+import {
+  generateSeedUsers,
+  normalizeEmailQuery,
+  DEFAULT_SEED_PASSWORD,
+} from "./seedData.js";
 
 class MemoryStore {
   private classrooms: ClassRoom[] = [];
   private activeSpeakers: Map<string, ActiveSpeaker> = new Map();
+  private users: UserAccount[] = [];
   private educatorProfile: User = {
     id: "tch-1",
     name: "Dra. Sri Wahyuni, M.Pd.",
@@ -24,6 +32,7 @@ class MemoryStore {
 
   constructor() {
     this.classrooms = generateInitialClassrooms();
+    this.users = generateSeedUsers();
   }
 
   // 1. CLASSROOM MANAGEMENT
@@ -338,6 +347,98 @@ class MemoryStore {
       ...data,
     };
     return this.educatorProfile;
+  }
+
+  // 6. USER ACCOUNT & AUTHENTICATION MANAGEMENT
+  public getAllUsers(): UserAccount[] {
+    return this.users.map(({ password, ...rest }) => rest);
+  }
+
+  public getAllUsersWithCredentials(): UserAccount[] {
+    return this.users;
+  }
+
+  public getUserById(id: string): UserAccount | null {
+    const user = this.users.find((u) => u.id === id);
+    if (!user) return null;
+    const { password, ...safeUser } = user;
+    return safeUser;
+  }
+
+  public authenticateUser(
+    emailOrQuery: string,
+    passwordAttempt: string,
+    expectedRole?: Role
+  ): { success: boolean; user?: UserAccount; message?: string } {
+    const trimmedInput = emailOrQuery.trim();
+    if (!trimmedInput) {
+      return { success: false, message: "Email atau nama pengguna tidak boleh kosong." };
+    }
+
+    const normalizedQuery = normalizeEmailQuery(trimmedInput);
+
+    // Cari user berdasarkan email, emailWithDot, query yang dinormalisasi, atau nama lengkap
+    const matchedUser = this.users.find((u) => {
+      const matchRole = !expectedRole || u.role === expectedRole;
+      if (!matchRole) return false;
+
+      // 1. Cek email persis
+      if (u.email && u.email.toLowerCase() === trimmedInput.toLowerCase()) return true;
+      // 2. Cek emailWithDot
+      if (u.emailWithDot && u.emailWithDot.toLowerCase() === trimmedInput.toLowerCase()) return true;
+      // 3. Cek hasil normalisasi (misal abdularif vs abdul.arif)
+      if (u.email && normalizeEmailQuery(u.email) === normalizedQuery) return true;
+      // 4. Cek kesamaan nama lengkap
+      if (u.name.toLowerCase() === trimmedInput.toLowerCase()) return true;
+
+      return false;
+    });
+
+    if (!matchedUser) {
+      return {
+        success: false,
+        message: "Akun dengan email atau nama tersebut tidak ditemukan dalam daftar seed.",
+      };
+    }
+
+    // Validasi kata sandi (default: password123)
+    const expectedPassword = matchedUser.password || DEFAULT_SEED_PASSWORD;
+    if (passwordAttempt !== expectedPassword && passwordAttempt !== DEFAULT_SEED_PASSWORD) {
+      return {
+        success: false,
+        message: "Kata sandi salah. Gunakan password yang ditentukan: password123",
+      };
+    }
+
+    const { password, ...safeUser } = matchedUser;
+    return {
+      success: true,
+      user: safeUser,
+    };
+  }
+
+  public registerUser(userData: {
+    name: string;
+    email: string;
+    password?: string;
+    role: Role;
+    className?: string;
+    school?: string;
+  }): UserAccount {
+    const newUser: UserAccount = {
+      id: `usr-${Date.now()}`,
+      name: userData.name,
+      email: userData.email.toLowerCase().trim(),
+      emailWithDot: userData.email.toLowerCase().trim(),
+      password: userData.password || DEFAULT_SEED_PASSWORD,
+      role: userData.role,
+      className: userData.className,
+      school: userData.school || "SMAN 1 Teladan",
+    };
+
+    this.users.push(newUser);
+    const { password, ...safeUser } = newUser;
+    return safeUser;
   }
 }
 

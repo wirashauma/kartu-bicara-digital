@@ -45,6 +45,20 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { AnalyticsDashboardView } from "@/components/AnalyticsDashboardView";
 import { StudentDashboardView } from "@/components/StudentDashboardView";
 import { exportClassDiscussionToExcel } from "@/lib/excelExport";
+import {
+  fetchClassesApi,
+  createClassApi,
+  updateClassApi,
+  deleteClassApi,
+  resetClassSessionApi,
+  addStudentApi,
+  deleteStudentApi,
+  startSpeakerApi,
+  pauseSpeakerApi,
+  resumeSpeakerApi,
+  extendSpeakerApi,
+  finishSpeakerApi,
+} from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
@@ -89,15 +103,7 @@ export default function Home() {
   }, [currentClass]);
 
   // Konfigurasi Sesi yang Sinkron dengan Kelas Aktif
-  const [config, setConfig] = useState<SessionConfig>(() => ({
-    sessionCode: "TT-7892",
-    className: "Kelas XI MIPA 1",
-    topic: "Dilema Etika AI & Masa Depan Pendidikan",
-    subject: "Sosiologi / Bahasa Indonesia",
-    tokensPerStudent: 3,
-    speechTimeLimitSeconds: 60,
-    autoWarningThresholdSeconds: 10,
-  }));
+  const [config, setConfig] = useState<SessionConfig>(() => INITIAL_SESSION_CONFIG);
 
   // Pengaturan Formulir Sementara
   const [settingsForm, setSettingsForm] = useState<SessionConfig>(INITIAL_SESSION_CONFIG);
@@ -214,14 +220,40 @@ export default function Home() {
 
       setCurrentUser(user);
 
-      // 2. Daftar kelas tersimpan
+      // 2. Daftar kelas tersimpan (dengan validasi pembersihan dummy data)
       try {
         const savedClasses = localStorage.getItem("kbd_classrooms_v1");
         if (savedClasses) {
           const parsed = JSON.parse(savedClasses);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasOldDummy =
+            Array.isArray(parsed) &&
+            parsed.some(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (c: any) =>
+                c.name?.includes("XI MIPA") ||
+                c.name?.includes("X-E1") ||
+                c.name?.includes("X IPS") ||
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                c.students?.some((s: any) => s.name?.includes("Ahmad Faiz"))
+            );
+
+          if (Array.isArray(parsed) && parsed.length > 0 && !hasOldDummy) {
             setClasses(parsed);
+          } else {
+            // Migrasi otomatis ke data seed bersih (Kelas X.E3 & Kelas X.E5)
+            const seedClasses = generateInitialClassrooms();
+            setClasses(seedClasses);
+            localStorage.setItem("kbd_classrooms_v1", JSON.stringify(seedClasses));
+            localStorage.removeItem("kbd_selected_class_id_v1");
           }
+        } else {
+          // Ambil dari backend jika ada
+          fetchClassesApi().then((apiClasses) => {
+            if (apiClasses && apiClasses.length > 0) {
+              setClasses(apiClasses);
+              localStorage.setItem("kbd_classrooms_v1", JSON.stringify(apiClasses));
+            }
+          }).catch(() => {});
         }
       } catch (e) {
         console.error("Gagal memuat kbd_classrooms_v1", e);
@@ -259,11 +291,15 @@ export default function Home() {
 
   // Siswa otomatis masuk ke kelasnya tanpa perlu memilih
   useEffect(() => {
-    if (userRole === "STUDENT" && !selectedClassId && classes.length > 0) {
+    if (userRole === "STUDENT" && classes.length > 0) {
+      const targetClassName = currentUser?.className || "Kelas X.E3";
       const match =
-        classes.find((c) => c.name === currentUser?.className) || classes[0];
-      const timer = setTimeout(() => setSelectedClassId(match.id), 0);
-      return () => clearTimeout(timer);
+        classes.find((c) => c.name.toLowerCase() === targetClassName.toLowerCase()) ||
+        classes[0];
+      if (match && selectedClassId !== match.id) {
+        const timer = setTimeout(() => setSelectedClassId(match.id), 0);
+        return () => clearTimeout(timer);
+      }
     }
   }, [userRole, selectedClassId, classes, currentUser]);
 
@@ -307,10 +343,20 @@ export default function Home() {
   );
 
   // Handler: Tambah Kelas Baru
-  const handleAddClass = (
+  const handleAddClass = async (
     newClassData: Omit<ClassRoom, "id" | "createdAt" | "students">
   ) => {
-    const newClass: ClassRoom = {
+    // Sinkronisasi backend Express API
+    const apiClass = await createClassApi({
+      name: newClassData.name,
+      subject: newClassData.subject,
+      topic: newClassData.topic,
+      grade: newClassData.grade,
+      tokensPerStudent: newClassData.tokensPerStudent,
+      speechTimeLimitSeconds: newClassData.speechTimeLimitSeconds,
+    });
+
+    const newClass: ClassRoom = apiClass || {
       ...newClassData,
       id: `class-${Date.now()}`,
       createdAt: new Date().toISOString(),
@@ -323,14 +369,17 @@ export default function Home() {
   };
 
   // Handler: Tambah Siswa Baru ke Kelas Aktif
-  const handleAddStudent = (newStudentData: {
+  const handleAddStudent = async (newStudentData: {
     name: string;
     deskNumber: number;
     tokensQuota: number;
   }) => {
     if (!currentClass) return;
 
-    const newStudent: Student = {
+    // Sinkronisasi backend Express API
+    const apiStudent = await addStudentApi(currentClass.id, newStudentData);
+
+    const newStudent: Student = apiStudent || {
       id: `std-${Date.now()}-${newStudentData.deskNumber}`,
       name: newStudentData.name,
       deskNumber: newStudentData.deskNumber,
@@ -353,7 +402,8 @@ export default function Home() {
   };
 
   // Handler: Hapus Kelas
-  const handleDeleteClass = (classId: string) => {
+  const handleDeleteClass = async (classId: string) => {
+    await deleteClassApi(classId);
     setClasses((prev) => prev.filter((c) => c.id !== classId));
     if (selectedClassId === classId) {
       setSelectedClassId(null);
@@ -361,8 +411,9 @@ export default function Home() {
   };
 
   // Handler: Hapus Siswa dari Kelas Aktif
-  const executeDeleteStudent = () => {
-    if (!studentToDelete) return;
+  const executeDeleteStudent = async () => {
+    if (!studentToDelete || !currentClass) return;
+    await deleteStudentApi(currentClass.id, studentToDelete.id);
     setStudentsForCurrentClass((prev) =>
       prev.filter((s) => s.id !== studentToDelete.id)
     );
@@ -372,13 +423,28 @@ export default function Home() {
   // Data siswa saat ini (jika peran adalah SISWA)
   const currentStudentData = useMemo(() => {
     if (userRole !== "STUDENT") return null;
-    if (currentUser?.deskNumber) {
-      return (
-        students.find((s) => s.deskNumber === currentUser.deskNumber) ||
-        students[0]
-      );
+
+    // 1. Cocokkan berdasarkan ID persis
+    if (currentUser?.id) {
+      const match = students.find((s) => s.id === currentUser.id);
+      if (match) return match;
     }
-    return students[0];
+
+    // 2. Cocokkan berdasarkan nama lengkap (case-insensitive)
+    if (currentUser?.name) {
+      const match = students.find(
+        (s) => s.name.toLowerCase() === currentUser.name.toLowerCase()
+      );
+      if (match) return match;
+    }
+
+    // 3. Cocokkan berdasarkan nomor meja
+    if (currentUser?.deskNumber) {
+      const match = students.find((s) => s.deskNumber === currentUser.deskNumber);
+      if (match) return match;
+    }
+
+    return students[0] || null;
   }, [userRole, currentUser, students]);
 
   // Statistik Kelas Komputasi Langsung
@@ -471,8 +537,17 @@ export default function Home() {
 
       setActiveSpeaker(speakerData);
       setActiveTeacherTab("DISCUSSION");
+
+      // Sinkronisasi backend Express API
+      if (selectedClassId) {
+        startSpeakerApi(selectedClassId, {
+          studentId: selectedStudentForModal.id,
+          tokenType,
+          allocatedSeconds: durationSeconds,
+        }).catch((err) => console.warn("API startSpeaker sync skipped:", err));
+      }
     },
-    [selectedStudentForModal, playSuccessChime, setStudentsForCurrentClass]
+    [selectedStudentForModal, playSuccessChime, setStudentsForCurrentClass, selectedClassId]
   );
 
   // Selesai Bicara
@@ -512,21 +587,37 @@ export default function Home() {
       })
     );
 
+    const classIdToSync = selectedClassId;
     setActiveSpeaker(null);
     setForceFullscreenOverlay(false);
-  }, [activeSpeaker, playSuccessChime, setStudentsForCurrentClass]);
+
+    // Sinkronisasi backend Express API
+    if (classIdToSync) {
+      finishSpeakerApi(classIdToSync).catch((err) =>
+        console.warn("API finishSpeaker sync skipped:", err)
+      );
+    }
+  }, [activeSpeaker, playSuccessChime, setStudentsForCurrentClass, selectedClassId]);
 
   // Jeda / Lanjutkan Timer
   const handleTogglePause = useCallback(() => {
     playClick();
     setActiveSpeaker((prev) => {
       if (!prev) return null;
+      const nextPaused = !prev.isPaused;
+      if (selectedClassId) {
+        if (nextPaused) {
+          pauseSpeakerApi(selectedClassId).catch(() => {});
+        } else {
+          resumeSpeakerApi(selectedClassId).catch(() => {});
+        }
+      }
       return {
         ...prev,
-        isPaused: !prev.isPaused,
+        isPaused: nextPaused,
       };
     });
-  }, [playClick]);
+  }, [playClick, selectedClassId]);
 
   // Tambah Waktu Bicara
   const handleExtendTime = useCallback(
@@ -534,6 +625,9 @@ export default function Home() {
       playClick();
       setActiveSpeaker((prev) => {
         if (!prev) return null;
+        if (selectedClassId) {
+          extendSpeakerApi(selectedClassId, seconds).catch(() => {});
+        }
         return {
           ...prev,
           remainingSeconds: prev.remainingSeconds + seconds,
@@ -542,11 +636,11 @@ export default function Home() {
         };
       });
     },
-    [playClick]
+    [playClick, selectedClassId]
   );
 
   // Simpan Pengaturan
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setConfig(settingsForm);
     if (selectedClassId) {
@@ -565,6 +659,13 @@ export default function Home() {
           return c;
         })
       );
+      await updateClassApi(selectedClassId, {
+        name: settingsForm.className,
+        subject: settingsForm.subject,
+        topic: settingsForm.topic,
+        tokensPerStudent: settingsForm.tokensPerStudent,
+        speechTimeLimitSeconds: settingsForm.speechTimeLimitSeconds,
+      }).catch(() => {});
     }
     setSettingsSavedMessage("Pengaturan sesi berhasil diperbarui.");
     setTimeout(() => setSettingsSavedMessage(""), 3000);
@@ -575,9 +676,22 @@ export default function Home() {
     setIsResetConfirmOpen(true);
   };
 
-  const executeResetSession = () => {
+  const executeResetSession = async () => {
     setActiveSpeaker(null);
-    setStudentsForCurrentClass(() => generateInitialStudents());
+    if (selectedClassId) {
+      await resetClassSessionApi(selectedClassId).catch(() => {});
+    }
+    setStudentsForCurrentClass((prev) =>
+      prev.map((s) => ({
+        ...s,
+        remainingTokens: currentClass?.tokensPerStudent || 3,
+        usedTokens: [],
+        isCurrentlySpeaking: false,
+        hasSpoken: false,
+        totalSpeakingTimeSeconds: 0,
+        lastSpokeAt: undefined,
+      }))
+    );
     setIsResetConfirmOpen(false);
     setSettingsSavedMessage("Sesi kelas telah direset ke kondisi awal.");
     setTimeout(() => setSettingsSavedMessage(""), 3000);
@@ -617,6 +731,8 @@ export default function Home() {
             isMuted={isMuted}
             onToggleMute={toggleMute}
             currentClass={currentClass}
+            classes={classes}
+            onSelectClass={(id) => setSelectedClassId(id)}
             onBackToClassList={() => setSelectedClassId(null)}
           />
 
