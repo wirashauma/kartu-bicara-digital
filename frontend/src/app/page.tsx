@@ -44,10 +44,6 @@ import { AddStudentModal } from "@/components/AddStudentModal";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { AnalyticsDashboardView } from "@/components/AnalyticsDashboardView";
 import { StudentDashboardView } from "@/components/StudentDashboardView";
-import {
-  ClassStatsHeaderSkeleton,
-  ClassListSkeleton,
-} from "@/components/skeletons";
 import { exportClassDiscussionToExcel } from "@/lib/excelExport";
 import { cn } from "@/lib/utils";
 
@@ -200,14 +196,23 @@ export default function Home() {
     playClick,
   } = useAudioWarning({ initialMuted: false, initialVolume: 0.85 });
 
-  // Baca pengguna & status tersimpan saat mount (Mencegah Hydration Mismatch)
+  // Baca pengguna & status tersimpan saat mount (Mencegah Hydration Mismatch & Auth Guard)
   useEffect(() => {
     const timer = setTimeout(() => {
       // 1. Pengguna tersimpan
       const user = getStoredUser();
-      if (user) {
-        setCurrentUser(user);
+      if (!user) {
+        // Belum login -> Arahkan langsung ke halaman login sebagai gerbang awal
+        router.replace("/login");
+        return;
       }
+
+      // Sinkronkan cookie kbd_auth_logged_in jika belum ada
+      if (typeof document !== "undefined" && !document.cookie.includes("kbd_auth_logged_in=1")) {
+        document.cookie = "kbd_auth_logged_in=1; path=/; max-age=2592000; SameSite=Lax";
+      }
+
+      setCurrentUser(user);
 
       // 2. Daftar kelas tersimpan
       try {
@@ -248,7 +253,7 @@ export default function Home() {
       setIsHydrated(true);
     }, 0);
     return () => clearTimeout(timer);
-  }, []);
+  }, [router]);
 
   const userRole: Role = currentUser ? currentUser.role : "TEACHER";
 
@@ -578,12 +583,16 @@ export default function Home() {
     setTimeout(() => setSettingsSavedMessage(""), 3000);
   };
 
-  if (!isHydrated) {
+  if (!isHydrated || !currentUser) {
     return (
-      <main className="min-h-screen bg-[#F0F7FF] text-slate-900 flex flex-col font-sans">
-        <ClassStatsHeaderSkeleton />
-        <div className="flex-1 px-4 sm:px-6 py-6 max-w-7xl mx-auto w-full">
-          <ClassListSkeleton />
+      <main className="min-h-screen bg-gradient-to-br from-sky-50/70 via-slate-50 to-blue-50/50 flex flex-col items-center justify-center font-sans">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-sky-600 text-white flex items-center justify-center font-black text-sm shadow-md animate-pulse">
+            KBD
+          </div>
+          <p className="text-xs font-semibold text-slate-500">
+            Memeriksa sesi login...
+          </p>
         </div>
       </main>
     );

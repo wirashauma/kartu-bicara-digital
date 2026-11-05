@@ -19,7 +19,7 @@ import {
   UserPen,
   LogOut,
 } from "lucide-react";
-import { AuthUser, getStoredUser, clearStoredUser, DEMO_TEACHER } from "@/lib/auth";
+import { AuthUser, getStoredUser, clearStoredUser } from "@/lib/auth";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { FaqPageSkeleton } from "@/components/skeletons";
 import { cn } from "@/lib/utils";
@@ -143,7 +143,7 @@ export default function FaqPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setUser(getStoredUser() || DEMO_TEACHER);
+      setUser(getStoredUser());
       setIsLoaded(true);
     }, 0);
     return () => clearTimeout(timer);

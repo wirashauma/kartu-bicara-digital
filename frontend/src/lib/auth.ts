@@ -50,6 +50,7 @@ export function setStoredUser(user: AuthUser): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    document.cookie = "kbd_auth_logged_in=1; path=/; max-age=2592000; SameSite=Lax";
   } catch (e) {
     console.error("Failed to save auth user:", e);
   }
@@ -59,6 +60,7 @@ export function clearStoredUser(): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    document.cookie = "kbd_auth_logged_in=; path=/; max-age=0; SameSite=Lax";
   } catch (e) {
     console.error("Failed to remove auth user:", e);
   }

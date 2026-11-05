@@ -29,7 +29,6 @@ import {
   getStoredUser,
   setStoredUser,
   clearStoredUser,
-  DEMO_TEACHER,
 } from "@/lib/auth";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { ProfilePageSkeleton } from "@/components/skeletons";
@@ -90,7 +89,11 @@ export default function ProfilePage() {
   // Muat data profil saat komponen siap
   useEffect(() => {
     const timer = setTimeout(() => {
-      const stored = getStoredUser() || DEMO_TEACHER;
+      const stored = getStoredUser();
+      if (!stored) {
+        router.replace("/login");
+        return;
+      }
       setUser(stored);
       setFormData((prev) => ({
         ...prev,
@@ -105,7 +108,7 @@ export default function ProfilePage() {
       setIsLoaded(true);
     }, 0);
     return () => clearTimeout(timer);
-  }, []);
+  }, [router]);
 
   // Simpan Perubahan Data Diri
   const handleSaveProfile = (e: React.FormEvent) => {
