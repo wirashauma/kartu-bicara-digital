@@ -16,6 +16,10 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || "kbd_jwt_super_secret_key_2026_change_in_production",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   logLevel: process.env.LOG_LEVEL || "info",
+  prismaLog:
+    process.env.PRISMA_LOG !== undefined
+      ? process.env.PRISMA_LOG === "true"
+      : process.env.NODE_ENV === "development",
   firebase: {
     apiKey: process.env.FIREBASE_API_KEY || "AIzaSyCt7EIlSAXz1PIEYe0nIonx1pb_Vfyo9bM",
     authDomain: process.env.FIREBASE_AUTH_DOMAIN || "kartu-bicara-digital.firebaseapp.com",
