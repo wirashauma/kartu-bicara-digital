@@ -1,0 +1,118 @@
+// ==============================================================================
+// KARTU BICARA DIGITAL - PRISMA SCHEMA
+// ==============================================================================
+// Model Pembelajaran Kooperatif Time Token Arends
+// Database: PostgreSQL (Supabase) with Transaction Pooler & Direct URL
+// ==============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  TEACHER
+  STUDENT
+}
+
+enum TokenType {
+  BERTANYA
+  MENJAWAB
+  BERPENDAPAT
+  MENANGGAPI
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  name        String
+  role        Role     @default(STUDENT)
+  deskNumber  Int?
+  className   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  students    Student[]
+
+  @@map("users")
+}
+
+model ClassRoom {
+  id                     String    @id @default(uuid())
+  name                   String
+  subject                String
+  topic                  String    @default("Diskusi Terbuka")
+  grade                  String    @default("X")
+  tokensPerStudent       Int       @default(3)
+  speechTimeLimitSeconds Int       @default(60)
+  sessionPin             String
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  students               Student[]
+  tokens                 Token[]
+  activeSpeaker          ActiveSpeaker?
+
+  @@map("classrooms")
+}
+
+model Student {
+  id                       String     @id @default(uuid())
+  name                     String
+  deskNumber               Int
+  tokensQuota              Int        @default(3)
+  remainingTokens          Int        @default(3)
+  totalSpeakingTimeSeconds Int        @default(0)
+  hasSpoken                Boolean    @default(false)
+  isCurrentlySpeaking      Boolean    @default(false)
+  lastSpokeAt              DateTime?
+  classRoomId              String
+  classRoom                ClassRoom  @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+  userId                   String?
+  user                     User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  usedTokens               Token[]
+  createdAt                DateTime   @default(now())
+  updatedAt                DateTime   @updatedAt
+
+  @@index([classRoomId])
+  @@map("students")
+}
+
+model Token {
+  id              String    @id @default(uuid())
+  type            TokenType
+  studentId       String
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentName     String
+  deskNumber      Int
+  durationSeconds Int
+  usedAt          DateTime  @default(now())
+  classRoomId     String?
+  classRoom       ClassRoom? @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([classRoomId])
+  @@map("tokens")
+}
+
+model ActiveSpeaker {
+  id               String    @id @default(uuid())
+  classRoomId      String    @unique
+  classRoom        ClassRoom @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+  studentId        String
+  studentName      String
+  deskNumber       Int
+  tokenType        TokenType
+  allocatedSeconds Int
+  remainingSeconds Int
+  isPaused         Boolean   @default(false)
+  startedAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("active_speakers")
+}
+

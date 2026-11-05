@@ -13,8 +13,10 @@ apiRouter.use("/profile", profileRoutes);
 apiRouter.get("/health", (req, res) => {
   res.json({
     status: "ok",
+    uptime: Math.floor(process.uptime()),
     service: "Kartu Bicara Digital API",
     model: "Time Token Arends",
+    database: "PostgreSQL Supabase (Prisma)",
     timestamp: new Date().toISOString(),
   });
 });

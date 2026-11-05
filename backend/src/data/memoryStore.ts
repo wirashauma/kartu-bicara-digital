@@ -15,6 +15,7 @@ import {
   normalizeEmailQuery,
   DEFAULT_SEED_PASSWORD,
 } from "./seedData.js";
+import { prisma } from "../config/prisma.js";
 
 class MemoryStore {
   private classrooms: ClassRoom[] = [];
@@ -33,6 +34,86 @@ class MemoryStore {
   constructor() {
     this.classrooms = generateInitialClassrooms();
     this.users = generateSeedUsers();
+  }
+
+  // Sinkronisasi awal dengan PostgreSQL (Supabase) via Prisma
+  public async initFromDatabase(): Promise<void> {
+    try {
+      const dbClasses = await prisma.classRoom.findMany({
+        include: {
+          students: {
+            include: {
+              usedTokens: true,
+            },
+            orderBy: { deskNumber: "asc" },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      });
+
+      if (dbClasses.length > 0) {
+        this.classrooms = dbClasses.map((c) => ({
+          id: c.id,
+          name: c.name,
+          subject: c.subject,
+          topic: c.topic,
+          grade: c.grade,
+          sessionPin: c.sessionPin,
+          tokensPerStudent: c.tokensPerStudent,
+          speechTimeLimitSeconds: c.speechTimeLimitSeconds,
+          createdAt: c.createdAt.toISOString(),
+          students: c.students.map((s) => ({
+            id: s.id,
+            name: s.name,
+            deskNumber: s.deskNumber,
+            tokensQuota: s.tokensQuota,
+            remainingTokens: s.remainingTokens,
+            totalSpeakingTimeSeconds: s.totalSpeakingTimeSeconds,
+            hasSpoken: s.hasSpoken,
+            isCurrentlySpeaking: s.isCurrentlySpeaking,
+            lastSpokeAt: s.lastSpokeAt?.toISOString(),
+            usedTokens: s.usedTokens.map((t) => ({
+              id: t.id,
+              type: t.type as TokenType,
+              studentId: t.studentId,
+              studentName: t.studentName,
+              deskNumber: t.deskNumber,
+              durationSeconds: t.durationSeconds,
+              usedAt: t.usedAt.toISOString(),
+            })),
+          })),
+        }));
+        console.log(
+          `✅ [PRISMA STORE] Berhasil memuat ${dbClasses.length} kelas dan ${dbClasses.reduce(
+            (acc, c) => acc + c.students.length,
+            0
+          )} siswa dari PostgreSQL Supabase.`
+        );
+      }
+
+      const dbUsers = await prisma.user.findMany();
+      if (dbUsers.length > 0) {
+        this.users = dbUsers.map((u) => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          emailWithDot: u.email,
+          password: u.password,
+          role: u.role as Role,
+          className: u.className || undefined,
+          deskNumber: u.deskNumber || undefined,
+          school: "SMAN 1 Teladan",
+        }));
+        console.log(
+          `✅ [PRISMA STORE] Berhasil memuat ${dbUsers.length} akun pengguna dari PostgreSQL Supabase.`
+        );
+      }
+    } catch (err) {
+      console.warn(
+        "⚠️ [PRISMA STORE] Gagal sinkronisasi awal database, menggunakan memory default:",
+        err
+      );
+    }
   }
 
   // 1. CLASSROOM MANAGEMENT

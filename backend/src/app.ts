@@ -11,10 +11,17 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps, curl, postman) or matching origin
-      if (!origin || origin.includes("localhost") || origin === config.clientOrigin) {
+      if (
+        !origin ||
+        config.corsAllowedOrigins.includes(origin) ||
+        origin.includes("localhost") ||
+        origin === config.clientOrigin
+      ) {
         callback(null, true);
-      } else {
+      } else if (config.nodeEnv !== "production") {
         callback(null, true); // Permissive in dev
+      } else {
+        callback(new Error(`CORS blocked for origin: ${origin}`));
       }
     },
     credentials: true,
