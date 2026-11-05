@@ -23,12 +23,12 @@ export interface AuthUser {
 }
 
 export const DEMO_TEACHER: AuthUser = {
-  id: "tch-1",
-  name: "Dra. Sri Wahyuni, M.Pd.",
-  email: "sri.wahyuni@sekolah.sch.id",
+  id: "usr-guru-mutia",
+  name: "Mutia Puspita Sari, S.Pd.",
+  email: "mutiapuspitasari@gmail.com",
   role: "TEACHER",
   school: "SMAN 1 Teladan",
-  subject: "Sosiologi / Bahasa Indonesia",
+  subject: "Bahasa Indonesia",
 };
 
 export const DEMO_STUDENT: AuthUser = {
@@ -38,6 +38,16 @@ export const DEMO_STUDENT: AuthUser = {
   role: "STUDENT",
   school: "SMAN 1 Teladan",
   className: "Kelas X.E3",
+  deskNumber: 1,
+};
+
+export const DEMO_STUDENT_XE5: AuthUser = {
+  id: "std-xe5-1",
+  name: "Adelya Alsa Sakhira",
+  email: "adelyaalsasakhira@gmail.com",
+  role: "STUDENT",
+  school: "SMAN 1 Teladan",
+  className: "Kelas X.E5",
   deskNumber: 1,
 };
 

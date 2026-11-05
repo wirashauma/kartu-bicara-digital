@@ -20,6 +20,7 @@ import {
   getStoredUser,
   DEMO_TEACHER,
   DEMO_STUDENT,
+  DEMO_STUDENT_XE5,
   AuthUser,
   authenticateCredentials,
 } from "@/lib/auth";
@@ -56,11 +57,15 @@ export default function LoginPage() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSuccess, setForgotSuccess] = useState(false);
 
-  // Akses Cepat Demo (1-Click)
-  const handleQuickDevLogin = (targetRole: Role) => {
-    const user: AuthUser = targetRole === "TEACHER" ? DEMO_TEACHER : DEMO_STUDENT;
-    setStoredUser(user);
-    setSuccessMessage(`Berhasil masuk sebagai ${user.name}`);
+  // Akses Cepat Quick Login Demo (1-Click)
+  const handleQuickDevLogin = (targetUser: AuthUser) => {
+    setEmail(targetUser.email);
+    setPassword("password123");
+    setRole(targetUser.role);
+    setStoredUser(targetUser);
+    setSuccessMessage(
+      `Berhasil masuk sebagai ${targetUser.name} (${targetUser.role === "TEACHER" ? "Pendidik" : targetUser.className})`
+    );
     setTimeout(() => {
       router.replace("/");
     }, 200);
@@ -236,7 +241,7 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={
                       role === "TEACHER"
-                        ? "guru@gmail.com atau sri.wahyuni@sekolah.sch.id"
+                        ? "mutiapuspitasari@gmail.com atau guru@gmail.com"
                         : "nama@gmail.com (cth: abdularif@gmail.com)"
                     }
                     required
@@ -330,28 +335,47 @@ export default function LoginPage() {
               </Link>
             </p>
 
-            {/* Akses Cepat Demo (Minimalist, Rapi di Bagian Bawah) */}
-            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-              <div className="flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span className="text-slate-500 font-medium">Demo Cepat:</span>
+            {/* Akses Cepat Demo / Quick Login (Sesuai Akun Mutia & Siswa Seed) */}
+            <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex flex-col gap-1.5 text-[11px] text-slate-400">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 font-medium text-slate-500">
+                  <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>Quick Login:</span>
+                </div>
+                <span className="font-mono text-[10px] text-slate-300">Akun Seed</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   type="button"
-                  onClick={() => handleQuickDevLogin("TEACHER")}
-                  className="font-semibold text-sky-600 hover:text-sky-700 hover:underline"
+                  onClick={() => handleQuickDevLogin(DEMO_TEACHER)}
+                  className="px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 border border-sky-200/60 font-bold text-sky-700 text-[11px] flex items-center gap-1 transition-all"
+                  title="Masuk langsung sebagai Guru Mutia Puspita Sari (mutiapuspitasari@gmail.com)"
                 >
-                  Guru
+                  <Presentation className="w-3 h-3 text-sky-600" />
+                  <span>Guru Mutia</span>
                 </button>
-                <span>·</span>
+
                 <button
                   type="button"
-                  onClick={() => handleQuickDevLogin("STUDENT")}
-                  className="font-semibold text-sky-600 hover:text-sky-700 hover:underline"
+                  onClick={() => handleQuickDevLogin(DEMO_STUDENT)}
+                  className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold text-slate-700 text-[11px] flex items-center gap-1 transition-all"
+                  title="Masuk langsung sebagai Siswa Abdul Arif (Kelas X.E3 - Seed)"
                 >
-                  Siswa
+                  <GraduationCap className="w-3 h-3 text-slate-600" />
+                  <span>Siswa (Abdul Arif - X.E3)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleQuickDevLogin(DEMO_STUDENT_XE5)}
+                  className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold text-slate-700 text-[11px] flex items-center gap-1 transition-all"
+                  title="Masuk langsung sebagai Siswa Adelya Alsa Sakhira (Kelas X.E5 - Seed)"
+                >
+                  <GraduationCap className="w-3 h-3 text-slate-600" />
+                  <span>Siswa (Adelya - X.E5)</span>
                 </button>
               </div>
-              <span>v1.2</span>
             </div>
           </div>
         </div>

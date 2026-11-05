@@ -306,6 +306,9 @@ async function runUAT() {
     const classId = "class-xe3";
     const studentId = "std-xe3-1"; // Abdul Arif
 
+    // Bersihkan sesi sebelum simulasi pengujian
+    await fetch(`${BACKEND_BASE}/api/classes/${classId}/reset`, { method: "POST" });
+
     // 5.1 Mulai Bicara (Start Speaker)
     const resStart = await fetch(`${BACKEND_BASE}/api/classes/${classId}/speaker/start`, {
       method: "POST",

@@ -11,6 +11,7 @@ Seluruh data dummy acak telah dihapus dan digantikan oleh akun seed resmi dari d
 - **Format Email**: `nama@gmail.com` (tanpa spasi / dengan titik)
 
 ### 1. Akun Guru (Pendidik)
+- **Email Guru**: `mutiapuspitasari@gmail.com` | Sandi: `password123`
 - **Email Guru Utama**: `sri.wahyuni@sekolah.sch.id` | Sandi: `password123`
 - **Email Guru Standar**: `guru@gmail.com` | Sandi: `password123`
 

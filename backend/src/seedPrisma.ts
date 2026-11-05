@@ -52,7 +52,18 @@ async function seedPrismaDatabase() {
       },
     });
 
-    console.log(`✅ [GURU] 3 Akun Guru dibuat (${teacher1.email}, ${teacher2.email}, guru@gmail.com).`);
+    // Akun Guru Mutia Puspita Sari
+    const teacherMutia = await prisma.user.create({
+      data: {
+        id: "usr-guru-mutia",
+        email: "mutiapuspitasari@gmail.com",
+        password: DEFAULT_SEED_PASSWORD,
+        name: "Mutia Puspita Sari, S.Pd.",
+        role: "TEACHER",
+      },
+    });
+
+    console.log(`✅ [GURU] Akun Guru dibuat (${teacher1.email}, ${teacher2.email}, ${teacherMutia.email}, guru@gmail.com).`);
 
     // 3. Buat Ruang Kelas X.E3
     const classXE3 = await prisma.classRoom.create({

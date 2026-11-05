@@ -32,7 +32,8 @@ async function seedAllToFirebase() {
   // Pendidik
   allAccounts.push(
     { name: "Dra. Sri Wahyuni, M.Pd.", email: "sri.wahyuni@sekolah.sch.id", role: "TEACHER" },
-    { name: "Guru Pendidik", email: "guru@gmail.com", role: "TEACHER" }
+    { name: "Guru Pendidik", email: "guru@gmail.com", role: "TEACHER" },
+    { name: "Mutia Puspita Sari, S.Pd.", email: "mutiapuspitasari@gmail.com", role: "TEACHER" }
   );
 
   // Kelas X.E3

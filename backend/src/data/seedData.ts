@@ -206,7 +206,20 @@ export function generateSeedUsers(): UserAccount[] {
     avatar: "GP",
   });
 
-  // 3. Akun Siswa Kelas X.E3 (36 Siswa)
+  // 3. Akun Guru: Mutia Puspita Sari
+  users.push({
+    id: "tch-3",
+    name: "Mutia Puspita Sari, S.Pd.",
+    email: "mutiapuspitasari@gmail.com",
+    emailWithDot: "mutia.puspitasari@gmail.com",
+    password: DEFAULT_SEED_PASSWORD,
+    school: "SMAN 1 Teladan",
+    subject: "Bahasa Indonesia",
+    role: "TEACHER",
+    avatar: "MP",
+  });
+
+  // 4. Akun Siswa Kelas X.E3 (36 Siswa)
   STUDENTS_X_E3_NAMES.forEach((name, idx) => {
     const deskNumber = idx + 1;
     users.push({
