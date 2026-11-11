@@ -13,12 +13,13 @@ import {
 } from "./data/seedData.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCt7EIlSAXz1PIEYe0nIonx1pb_Vfyo9bM",
-  authDomain: "kartu-bicara-digital.firebaseapp.com",
-  projectId: "kartu-bicara-digital",
-  storageBucket: "kartu-bicara-digital.firebasestorage.app",
-  messagingSenderId: "459346102485",
-  appId: "1:459346102485:web:c56a866244e676230cfa5c",
+  apiKey: "AIzaSyCXEa7yf1O6mr7w-KbqZl_FJJqq9rdd148",
+  authDomain: "kartu-bicara-digital-2f0ce.firebaseapp.com",
+  projectId: "kartu-bicara-digital-2f0ce",
+  storageBucket: "kartu-bicara-digital-2f0ce.firebasestorage.app",
+  messagingSenderId: "314652631775",
+  appId: "1:314652631775:web:571700af43272963807f6a",
+  measurementId: "G-P8MRBLY589",
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);

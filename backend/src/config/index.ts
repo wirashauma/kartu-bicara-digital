@@ -21,13 +21,14 @@ export const config = {
       ? process.env.PRISMA_LOG === "true"
       : process.env.NODE_ENV === "development",
   firebase: {
-    apiKey: process.env.FIREBASE_API_KEY || "AIzaSyCt7EIlSAXz1PIEYe0nIonx1pb_Vfyo9bM",
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN || "kartu-bicara-digital.firebaseapp.com",
-    projectId: process.env.FIREBASE_PROJECT_ID || "kartu-bicara-digital",
+    apiKey: process.env.FIREBASE_API_KEY || "AIzaSyCXEa7yf1O6mr7w-KbqZl_FJJqq9rdd148",
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN || "kartu-bicara-digital-2f0ce.firebaseapp.com",
+    projectId: process.env.FIREBASE_PROJECT_ID || "kartu-bicara-digital-2f0ce",
     storageBucket:
-      process.env.FIREBASE_STORAGE_BUCKET || "kartu-bicara-digital.firebasestorage.app",
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "459346102485",
-    appId: process.env.FIREBASE_APP_ID || "1:459346102485:web:c56a866244e676230cfa5c",
+      process.env.FIREBASE_STORAGE_BUCKET || "kartu-bicara-digital-2f0ce.firebasestorage.app",
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "314652631775",
+    appId: process.env.FIREBASE_APP_ID || "1:314652631775:web:571700af43272963807f6a",
+    measurementId: process.env.FIREBASE_MEASUREMENT_ID || "G-P8MRBLY589",
   },
 };
 

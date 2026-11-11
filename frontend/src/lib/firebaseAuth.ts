@@ -56,21 +56,27 @@ function findSeedUserMetadata(query: string, targetRole: Role): AuthUser | null 
 async function syncToFirestoreDatabase(user: AuthUser, uid: string): Promise<void> {
   try {
     const userDocRef = doc(db, "users", uid);
-    await setDoc(
-      userDocRef,
-      {
-        uid,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        className: user.className || null,
-        deskNumber: user.deskNumber || null,
-        school: user.school || "SMAN 1 Teladan",
-        subject: user.subject || null,
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true }
-    );
+    // Batas waktu 2000ms agar otentikasi login/register tetap secepat kilat meski Firestore belum diaktifkan di konsol
+    await Promise.race([
+      setDoc(
+        userDocRef,
+        {
+          uid,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          className: user.className || null,
+          deskNumber: user.deskNumber || null,
+          school: user.school || "SMAN 1 Teladan",
+          subject: user.subject || null,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      ),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Firestore sync timeout/inactive")), 2000)
+      ),
+    ]);
   } catch (firestoreError: unknown) {
     // Jika Firestore API belum diaktifkan di konsol Firebase atau network timeout,
     // jangan gagalkan proses login/register pengguna.

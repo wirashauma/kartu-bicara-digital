@@ -10,6 +10,7 @@ export const firebaseConfig = {
   storageBucket: config.firebase.storageBucket,
   messagingSenderId: config.firebase.messagingSenderId,
   appId: config.firebase.appId,
+  measurementId: config.firebase.measurementId,
 };
 
 export const firebaseApp: FirebaseApp =
