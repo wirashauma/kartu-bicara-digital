@@ -9,7 +9,6 @@ import {
   EyeOff,
   AlertCircle,
   CheckCircle2,
-  Zap,
   Presentation,
   GraduationCap,
   X,
@@ -18,9 +17,6 @@ import { Role } from "@/types/session";
 import {
   setStoredUser,
   getStoredUser,
-  DEMO_TEACHER,
-  DEMO_STUDENT,
-  DEMO_STUDENT_XE5,
   AuthUser,
   authenticateCredentials,
 } from "@/lib/auth";
@@ -56,20 +52,6 @@ export default function LoginPage() {
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSuccess, setForgotSuccess] = useState(false);
-
-  // Akses Cepat Quick Login Demo (1-Click)
-  const handleQuickDevLogin = (targetUser: AuthUser) => {
-    setEmail(targetUser.email);
-    setPassword("password123");
-    setRole(targetUser.role);
-    setStoredUser(targetUser);
-    setSuccessMessage(
-      `Berhasil masuk sebagai ${targetUser.name} (${targetUser.role === "TEACHER" ? "Pendidik" : targetUser.className})`
-    );
-    setTimeout(() => {
-      router.replace("/");
-    }, 200);
-  };
 
   // Masuk dengan Google
   const handleGoogleLogin = () => {
@@ -334,49 +316,6 @@ export default function LoginPage() {
                 Daftar sekarang
               </Link>
             </p>
-
-            {/* Akses Cepat Demo / Quick Login (Sesuai Akun Mutia & Siswa Seed) */}
-            <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex flex-col gap-1.5 text-[11px] text-slate-400">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 font-medium text-slate-500">
-                  <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span>Quick Login:</span>
-                </div>
-                <span className="font-mono text-[10px] text-slate-300">Akun Seed</span>
-              </div>
-
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => handleQuickDevLogin(DEMO_TEACHER)}
-                  className="px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 border border-sky-200/60 font-bold text-sky-700 text-[11px] flex items-center gap-1 transition-all"
-                  title="Masuk langsung sebagai Guru Mutia Puspita Sari (mutiapuspitasari@gmail.com)"
-                >
-                  <Presentation className="w-3 h-3 text-sky-600" />
-                  <span>Guru Mutia</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickDevLogin(DEMO_STUDENT)}
-                  className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold text-slate-700 text-[11px] flex items-center gap-1 transition-all"
-                  title="Masuk langsung sebagai Siswa Abdul Arif (Kelas X.E3 - Seed)"
-                >
-                  <GraduationCap className="w-3 h-3 text-slate-600" />
-                  <span>Siswa (Abdul Arif - X.E3)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickDevLogin(DEMO_STUDENT_XE5)}
-                  className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold text-slate-700 text-[11px] flex items-center gap-1 transition-all"
-                  title="Masuk langsung sebagai Siswa Adelya Alsa Sakhira (Kelas X.E5 - Seed)"
-                >
-                  <GraduationCap className="w-3 h-3 text-slate-600" />
-                  <span>Siswa (Adelya - X.E5)</span>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
 
